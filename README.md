@@ -1,1 +1,1 @@
-Repository for the `R` package [`ascr`](https://github.com/b-steve/ascr) developed by [Ben C.Stevenson](ben.stevenson@auckland.ac.nz)
+Repository for accompanying shiny app for the `R` package [`ascr`](https://github.com/b-steve/ascr) developed by [Ben C.Stevenson](ben.stevenson@auckland.ac.nz)

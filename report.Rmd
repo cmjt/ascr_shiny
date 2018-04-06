@@ -1,0 +1,113 @@
+---
+title: "Model details"
+output: html_document
+params:
+  buffer: NA
+  spacing: NA
+  fit: NA
+  anispeed: = NA
+  dist: NA
+---
+```{r setup, eval = TRUE, echo = FALSE}
+bear <- FALSE
+distance <- FALSE
+hn <- FALSE
+hr <- FALSE
+th <- FALSE
+if(!is.null(params$fit$args$capt$bearing)){bear <- TRUE}
+if(!is.null(params$fit$args$capt$dist)){distance <- TRUE}
+if(params$fit$args$detfn == "hn"){hn <- TRUE}
+if(params$fit$args$detfn == "hr"){hr <- TRUE}
+if(params$fit$args$detfn == "th"){th <- TRUE}
+```
+
+### Data and Mask
+
+The data included a total of `r nrow(params$fit$args$capt$bincapt)` calls and `r ncol(params$fit$args$capt$bincapt)` traps.
+
+The mask used had a `r params$buffer` meter buffer and spacing of `r params$spacing` meters.
+
+```{r plot mask,eval = TRUE,echo = FALSE}
+show.mask(params$fit$args$mask,params$fit$args$traps)
+```
+
+
+
+### Parameter estimates
+
+
+```{r, echo = FALSE,eval = TRUE,message=FALSE}
+summary(params$fit)
+```
+
+
+
+### Detection surface
+
+```{r plot set.cont,eval=TRUE,echo=FALSE,warning=FALSE,message=FALSE}
+show.detsurf(params$fit,surface  = FALSE)
+```
+
+```{r plot set.surf,eval=TRUE,echo=FALSE,warning=FALSE,message=FALSE}
+show.detsurf(params$fit)
+```
+
+
+### Detection function
+
+```{r det hn,eval = hn, results = 'asis',message = FALSE, echo = FALSE}
+cat("$$ g(d) = g0 \\; \\text{exp}( \\frac{-d^2} {2 \\; \\sigma^2 })$$")
+```
+
+```{r det hr,eval = hr, results = 'asis',message = FALSE, echo = FALSE}
+cat("$$ g(d) = g0 \\; ( 1 - \\text{exp}( -\\frac{d}{\\sigma}^{-z} ) )$$")
+```
+
+```{r det th,eval = th, results = 'asis',message = FALSE, echo = FALSE}
+cat("$$g(d) = 0.5 - 0.5 \\; erf( \\frac{d}{\\text{scale}} - \\text{shape})$$")
+```
+
+```{r plot.detfn, eval=TRUE,echo=FALSE}
+show.detfn(params$fit)
+```
+
+
+
+
+```{r bearing,eval = bear,results='asis',message = FALSE, echo = FALSE}
+cat("### Bearing distribution")
+
+```
+
+```{r plot bear,eval = bear,echo = FALSE}
+show.dvm(params$fit)
+```
+
+```{r distance,eval = distance,results = 'asis',message = FALSE,echo = FALSE}
+cat(paste("### Distance distribution","\n"))
+
+cat(paste("Distance distribution evaluated at", params$dist, "m"))
+
+```
+
+```{r plot dist,eval = distance,echo = FALSE}
+show.distgam(params$fit,  d = params$dist)
+```
+
+
+
+### Estimated call locations
+
+```{r animation, eval=TRUE,echo=FALSE,fig.show='animate',message=FALSE,fig.height=7,fig.width=7}
+frames <- nrow(params$fit$args$capt$bincapt)
+oopt = ani.options(interval = params$anispeed,loop = 1, nmax = frames,ani.width = 600,ani.height = 600)
+out <- vector("list", frames)
+for (i in 1:ani.options("nmax")) {
+  locations(params$fit,i)
+  legend("top",legend = paste("call",i,sep = " "),bty = "n")
+  ani.pause()
+  }
+
+ani.options(oopt)
+
+```
