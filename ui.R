@@ -3,9 +3,9 @@ library(shinyjs)
 library(shinycssloaders)
 library(shinythemes)
 library(animation)
+library(ascr)
 source("functions.R")
 
-get.ascr()
 
 shinyUI(fluidPage(
     theme = shinytheme("spacelab"),

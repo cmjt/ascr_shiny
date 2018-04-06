@@ -5,8 +5,7 @@
 #' and \code{group}. It is the pairing of
 #' \code{group} and \code{occasion} that forms the individual
 #' "call id". Optional to include a column of bearings (in radians)
-#' and/or distances.
-#' @export 
+#' and/or distances. 
 get.capt.hist <- function(data){
     occasion <- data$occasion
     post <- data$post
@@ -23,9 +22,6 @@ get.capt.hist <- function(data){
 #' Function to plot mask along with trap locations in a 'tidy' presentable manner
 #' @param mask mask object from \code{create.mask}
 #' @param traps a matrix of trap locations used to create the \link{mask}
-#' 
-#' @export
-
 show.mask <- function(mask = NULL,traps = NULL){
     plot(mask,asp = 1,pch = 20,col = "grey",
          xlab = "Longitude",ylab = "Latitude")
@@ -35,11 +31,9 @@ show.mask <- function(mask = NULL,traps = NULL){
 #' Function to plot Von Mises distribution of bearing measurement error
 #' from model.
 #' @param fit ascr model
-#'
-#' @export
 show.dvm <- function(fit = NULL){
-    theta = sort(fit$args$capt$bearing - pi)
-    val <- dvm(theta = theta,mu = 0, kappa = fit$coefficients["kappa"])
+    theta = sort(fit$args$capt[[1]]$bearing - pi)
+    val <- CircStats::dvm(theta = theta,mu = 0, kappa = fit$coefficients["kappa"])
     plot(theta,val, type="l",xlim = c(-pi/2,pi/2),ylim = range(0,max(val)), main = "", axes = FALSE, xlab = "bearings (rad)", ylab = "")
     axis(1, at = c(-pi/2,0,pi/2), labels = c(expression(-pi/2),0,expression(pi/2)))
     axis(2)
@@ -49,9 +43,8 @@ show.dvm <- function(fit = NULL){
 #' from model.
 #' @param fit ascr model
 #' @param d distance of call/animal at which to plot
-#' @export
 show.distgam <- function(fit = NULL,d = NULL){
-    x <- sort(fit$args$capt$dist)
+    x <- sort(fit$args$capt[[1]]$dist)
     val <- dgamma(x = x, shape = fit$coefficients["alpha"],
                   scale = d/fit$coefficients["alpha"])
     plot(x,val, type="l",ylim = range(val), main = "", axes = FALSE, xlab = "distance (m)", ylab = "")
@@ -73,7 +66,6 @@ show.distgam <- function(fit = NULL,d = NULL){
 #' traps <- shiny_example_traps
 #' detections <- shiny_example_detections
 #' show.data(traps, capt.hist)}
-#' @export
 show.data <- function(traps, capt.hist, xlim = NULL,ylim = NULL, id = 1,show.axes = FALSE){
     if(is.null(xlim)){
         xrang = range(traps[,1])
@@ -129,43 +121,3 @@ show.data <- function(traps, capt.hist, xlim = NULL,ylim = NULL, id = 1,show.axe
     }
 }
 
-#' Function to ckeck if listed packages are available
-#' No arguments are required.
-#' @export
-pkgs.ui <- function() {
-  if(!require(shiny) | !require(rmarkdown) | !require(shinyjs) |
-     !require(shinycssloaders) | !require(shinythemes) | !require(animation)  | !require(ascr)){
-      stop("To run the ascr user interface please ensure the following packages are installed: shiny, shinyjs, shinythemes, shinycssloaders, rmarkdown, animation, ascr")
-  }
-}
-
-
-#' Function to get ascr package from github
-#' @export
-get.ascr <- function(){
-    pkgs <- c("CircStats", "fastGHQuad", "knitr", "matrixStats", "mvtnorm", "optimx", "plyr",
-              "Rcpp", "R2admb", "secr", "testthat", "truncnorm", "xtable", "downloader")
-    options(warn = -1)
-    for (i in pkgs){
-        if (!require(i, quietly = TRUE, character.only = TRUE)){
-            install.packages(i)
-        }
-    }
-    options(warn = 0)
-    if (.Platform$OS == "windows"){
-        bin.name <- "https://github.com/b-steve/ascr/releases/download/v2.1.1/ascr_2.1.1.zip"
-        ext <- ".zip"
-        type <- "win.binary"
-    } else if (.Platform$OS == "unix"){
-        bin.name <- "https://github.com/b-steve/ascr/archive/v2.1.1.tar.gz"
-        ext <- ".tar.gz"
-        type <- "source"
-    } else {
-        stop("Unknown OS type.")
-    }
-    dest <- paste("ascr_2.1.1", ext, sep = "")
-    library(downloader)
-    download(bin.name, destfile = dest)
-    install.packages(dest, repos = NULL, type = type)
-    unlink(dest)
-}

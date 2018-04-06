@@ -16,7 +16,7 @@ shinyServer(function(input, output,session) {
     ## read in input data
      traps <- reactive({
         if(input$example == TRUE){
-            
+            load("shiny_example_traps.RData")
             traps <- shiny_example_traps
             
         }else{
@@ -38,28 +38,28 @@ shinyServer(function(input, output,session) {
      })
     detections <- reactive({
         if("simple" %in% input$which_example & input$example == TRUE){
-            
+            load("shiny_example_detections.RData")
             detections <- shiny_example_detections[,1:3]
             disable("bearing_range")
             hide("bearing_range")
             return(detections)
         }else{
             if("bearings" %in% input$which_example & input$example == TRUE){
-                
+                load("shiny_example_detections.RData")
                 detections <- shiny_example_detections[,1:4]
                 enable("bearing_range")
                 shinyjs::show("bearing_range")
                 return(detections)
             }else{
                 if("distance" %in% input$which_example & input$example == TRUE){
-                    
+                    load("shiny_example_detections.RData")
                     detections <- shiny_example_detections[,-4]
                     disable("bearing_range")
                     hide("bearing_range")
                     return(detections)
                 }else{
                     if("bd" %in% input$which_example & input$example == TRUE){
-                        
+                        load("shiny_example_detections.RData")
                         detections <- shiny_example_detections
                         enable("bearing_range")
                         shinyjs::show("bearing_range")
@@ -462,8 +462,8 @@ shinyServer(function(input, output,session) {
             detfn <- fit$args$detfn
             pars <- get.par(fit, pars = fit$detpars, cutoff = fit$fit.types["ss"],as.list = TRUE)
             buffer <- attr(get.mask(fit), "buffer")
-            probs <- calc.detfn(buffer, detfn = detfn, pars = pars,ss.link =fit$args$ss.opts$ss.link)
-            show.detfn(fit)
+            probs <- ascr:::calc.detfn(buffer, detfn = detfn, pars = pars,ss.link =fit$args$ss.opts$ss.link)
+            ascr:::show.detfn(fit)
             if(probs >= 0.1){
                 legend("center", bty = "n",paste("The detection probability at the mask buffer of ", buffer, "m is", round(probs,3), "(i.e., non-zero), perhaps increase mask buffer."),cex = 0.7,text.col = "red")
             }
@@ -496,7 +496,7 @@ shinyServer(function(input, output,session) {
         fit <- fit()
         if(class(fit)[1]=="ascr"){
             validate(need(input$call.num,"Please provide a call number"))
-            validate(need(input$call.num <= nrow(fit$args$capt$bincapt),"Please provide a valid call number"))
+            validate(need(input$call.num <= nrow(fit$args$capt[[1]]$bincapt),"Please provide a valid call number"))
             if("fine" %in% input$advancedOptions & is.null(ranges$x)){
                 traps <- traps()
                 validate(need(input$plotmaskspacing,
@@ -545,16 +545,16 @@ shinyServer(function(input, output,session) {
     ## Measurement error plots
     output$bearing_pdf <- renderPlot({
         fit <- fit()
-        validate(need(!is.null(fit$args$capt$bearing),"No bearing data provided"))
+        validate(need(!is.null(fit$args$capt[[1]]$bearing),"No bearing data provided"))
         show.dvm(fit)
 
     })
     output$distance_pdf <- renderPlot({
         fit <- fit()
-        validate(need(!is.null(fit$args$capt$dist),"No distance data provided"))
+        validate(need(!is.null(fit$args$capt[[1]]$dist),"No distance data provided"))
         validate(need(!(input$distD == 0), "Distance cannot be zero"))
         validate(need(!is.null(input$distD), "Please provide distance for measurement error distribution"))
-        validate(need(input$distD < max(fit$args$capt$dist),"Distance cannot be greater than those observed"))
+        validate(need(input$distD < max(fit$args$capt[[1]]$dist),"Distance cannot be greater than those observed"))
         show.distgam(fit, d = input$distD)
     })
         
@@ -600,7 +600,7 @@ shinyServer(function(input, output,session) {
             png(file)
             fit <- fit()
             if(class(fit)[1]=="ascr"){
-                show.detfn(fit)
+                ascr:::show.detfn(fit)
             }else{
                 NULL
             }
@@ -609,14 +609,14 @@ shinyServer(function(input, output,session) {
     ## deal with bearing and distance plots
     observe({
         fit <- fit()
-        if(is.null(fit$args$capt$dist)){
+        if(is.null(fit$args$capt[[1]]$dist)){
             disable("downloaddistancePlot")
             disable("distD")
         }else{
             enable("downloaddistancePlot")
             enable("distD")
         }
-        if(is.null(fit$args$capt$bearing)){
+        if(is.null(fit$args$capt[[1]]$bearing)){
             disable("downloadbearingPlot")
         }else{
             enable("downloadbearingPlot")
