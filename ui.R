@@ -1,3 +1,10 @@
+library(rmarkdown)
+library(shinyjs)
+library(shinycssloaders)
+library(shinythemes)
+library(animation)
+library(ascr)
+source("functions.R")
 
 shinyUI(fluidPage(
     theme = shinytheme("spacelab"),
