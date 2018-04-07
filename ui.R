@@ -22,6 +22,10 @@ shinyUI(fluidPage(
             h3(icon("table"), tags$b("Read in data")),
             ## example data loading
             checkboxInput("example", "Use example data",value = FALSE), ## example
+            radioButtons("trapType", "Single or multi array",
+                         choices = c("Single" = "single",
+                                     "Multiple" = "multi"),
+                         inline = TRUE,selected = "single"),
             radioButtons("which_example", "Chose example data to load",
                          choices = c( "Simple" = "simple",
                                      "With bearings (rad)" = "bearings",

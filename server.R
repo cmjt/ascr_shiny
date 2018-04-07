@@ -15,9 +15,13 @@ withConsoleRedirect <- function(containerId, expr) {
 shinyServer(function(input, output,session) {
     ## read in input data
      traps <- reactive({
-        if(input$example == TRUE){
+        if(input$example == TRUE & input$trapType == "single"){
             load("shiny_example_traps.RData")
-            traps <- shiny_example_traps
+            traps <- shiny_example_traps 
+        }
+        if(input$example == TRUE & input$trapType == "multi"){
+            load("shiny_multi_traps.RData")
+            traps <- shiny_multi_traps
             
         }else{
             req(input$file1)
@@ -119,6 +123,8 @@ shinyServer(function(input, output,session) {
             hide("quote")
             enable("which_example")
             shinyjs::show("which_example")
+            enable("trapType")
+            shinyjs::show("trapType")
         }else{
             enable("file1")
             enable("file2")
@@ -132,6 +138,8 @@ shinyServer(function(input, output,session) {
             shinyjs::show("quote")
             disable("which_example")
             hide("which_example")
+            disable("trapType")
+            hide("trapType")
         }
         ## code to produce downloadable objects (i.e., plots and report)
         ## initislly disable some options if no model fitted
