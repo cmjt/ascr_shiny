@@ -15,30 +15,34 @@ withConsoleRedirect <- function(containerId, expr) {
 shinyServer(function(input, output,session) {
     ## read in input data
      traps <- reactive({
-        if(input$example == TRUE & input$trapType == "single"){
-            load("shiny_example_traps.RData")
-            traps <- shiny_example_traps 
-        }
-        if(input$example == TRUE & input$trapType == "multi"){
-            load("shiny_multi_traps.RData")
-            traps <- shiny_multi_traps
-            
-        }else{
-            req(input$file1)
-            traps <- read.csv(input$file1$datapath,
-                              header = input$header,
-                              sep = input$sep,
-                              quote = input$quote)
-            
-            validate(need("x" %in% names(traps) & "y" %in% names(traps) & "post" %in% names(traps),
-                          "Trap file must contain columns named x, y, and post"))
-            validate(need(!("array" %in% names(traps) & length(table(traps$array)) > 1),
-                          "It seems you have multiple arrays, this software currently doesn't support this"))
-            validate(need(class(traps$post)=="integer", "Please give post ID as a whole number"))
-            validate(need(class(traps$x)%in%c("integer","numeric"), "Please ensure x coordinate is numeric"))
-            validate(need(class(traps$y)%in%c("integer","numeric"), "Please ensure y coordinate is numeric"))
-            return(traps)
-        } 
+         if(input$example == TRUE){
+             if(input$trapType == "single"){
+                 load("shiny_example_traps.RData")
+                 traps <- shiny_example_traps
+                 traps
+             }else{
+                 if(input$trapType == "multi"){
+                     load("shiny_multi_traps.RData")
+                     traps <- shiny_multi_traps
+                     traps
+                 }
+             }
+         }else{
+             req(input$file1)
+             traps <- read.csv(input$file1$datapath,
+                               header = input$header,
+                               sep = input$sep,
+                               quote = input$quote)
+             
+             validate(need("x" %in% names(traps) & "y" %in% names(traps) & "post" %in% names(traps),
+                           "Trap file must contain columns named x, y, and post"))
+             validate(need(!("array" %in% names(traps) & length(table(traps$array)) > 1),
+                           "It seems you have multiple arrays, this software currently doesn't support this"))
+             validate(need(class(traps$post)=="integer", "Please give post ID as a whole number"))
+             validate(need(class(traps$x)%in%c("integer","numeric"), "Please ensure x coordinate is numeric"))
+             validate(need(class(traps$y)%in%c("integer","numeric"), "Please ensure y coordinate is numeric"))
+             return(traps)
+         } 
      })
     detections <- reactive({
         if("simple" %in% input$which_example & input$example == TRUE){
