@@ -32,6 +32,10 @@ shinyUI(fluidPage(
                                      "With distance (m)" = "distance",
                                      "With bearings (rad) and distance (m)" = "bd"),
                          inline = TRUE),
+            radioButtons("which_example_multi", "Chose example data to load",
+                         choices = c( "Simple" = "simple",
+                                     "With bearings (rad)" = "bearings"),
+                         inline = TRUE),
 
 
             ## user data loading

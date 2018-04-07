@@ -45,68 +45,84 @@ shinyServer(function(input, output,session) {
          } 
      })
     detections <- reactive({
-        if("simple" %in% input$which_example & input$example == TRUE){
+        if("simple" %in% input$which_example & input$example == TRUE & input$trapType == "single"){
             load("shiny_example_detections.RData")
             detections <- shiny_example_detections[,1:3]
             disable("bearing_range")
             hide("bearing_range")
             return(detections)
         }else{
-            if("bearings" %in% input$which_example & input$example == TRUE){
+            if("bearings" %in% input$which_example & input$example == TRUE & input$trapType == "single"){
                 load("shiny_example_detections.RData")
                 detections <- shiny_example_detections[,1:4]
                 enable("bearing_range")
                 shinyjs::show("bearing_range")
                 return(detections)
             }else{
-                if("distance" %in% input$which_example & input$example == TRUE){
+                if("distance" %in% input$which_example & input$example == TRUE & input$trapType == "single"){
                     load("shiny_example_detections.RData")
                     detections <- shiny_example_detections[,-4]
                     disable("bearing_range")
                     hide("bearing_range")
                     return(detections)
                 }else{
-                    if("bd" %in% input$which_example & input$example == TRUE){
+                    if("bd" %in% input$which_example & input$example == TRUE & input$trapType == "single"){
                         load("shiny_example_detections.RData")
                         detections <- shiny_example_detections
                         enable("bearing_range")
                         shinyjs::show("bearing_range")
                         return(detections)
                     }else{
-                        req(input$file2)
-                        detections <- read.csv(input$file2$datapath,
-                                               header = input$header,
-                                               sep = input$sep,
-                                               quote = input$quote)
-                        
-                        validate(need("occasion" %in% names(detections) & "group" %in% names(detections) &
-                                      "post" %in% names(detections),
-                                      "Detections file must contain columns named occasion, group, and post"))
-                        ## checking the same group was not heard on by same trap more than once on the same occasion
-                        can1 <- 1/2 * (as.numeric(detections$post) +
-                                       detections$group)* (as.numeric(detections$post) +
-                                                           detections$group + 1) + detections$group
-                        validate(need(
-                            length(
-                                table(1/2 *(can1 + detections$occasion) *(can1 + detections$occasion + 1) +
-                                      detections$occasion)) == nrow(detections),
-                            "Detections were made more than once by some traps on the same occasion. CHECK DATA"))
-                        validate(need(class(detections$group) == "integer", "Please give group ID as a whole number"))
-                        validate(need(class(detections$occasion) == "integer", "Please give occasion ID as a whole number"))
-                        validate(need(class(detections$post) == "integer", "Please give post ID as a whole number"))
-                        if("bearing" %in% names(detections)){
-                            validate(need(class(detections$bearing) == "numeric", "Please make sure all bearings are numeric"))
-                            enable("bearing_range")
-                            shinyjs::show("bearing_range")
-                        }else{
+                        if("simple" %in% input$which_example & input$example == TRUE & input$trapType == "multi"){
+                            load("shiny_multi_detections.RData")
+                            detections <- shiny_multi_detections[,1:4]
                             disable("bearing_range")
                             hide("bearing_range")
+                            return(detections)
+                        }else{
+                            if("bearings" %in% input$which_example & input$example == TRUE & input$trapType == "multi"){
+                                load("shiny_multi_detections.RData")
+                                detections <- shiny_multi_detections[,1:5]
+                                enable("bearing_range")
+                                shinyjs::show("bearing_range")
+                                return(detections)
+                            }else{
+                                req(input$file2)
+                                detections <- read.csv(input$file2$datapath,
+                                                       header = input$header,
+                                                       sep = input$sep,
+                                                       quote = input$quote)
+                                
+                                validate(need("occasion" %in% names(detections) & "group" %in% names(detections) &
+                                              "post" %in% names(detections),
+                                              "Detections file must contain columns named occasion, group, and post"))
+                                ## checking the same group was not heard on by same trap more than once on the same occasion
+                                can1 <- 1/2 * (as.numeric(detections$post) +
+                                               detections$group)* (as.numeric(detections$post) +
+                                                                   detections$group + 1) + detections$group
+                                validate(need(
+                                    length(
+                                        table(1/2 *(can1 + detections$occasion) *(can1 + detections$occasion + 1) +
+                                              detections$occasion)) == nrow(detections),
+                                    "Detections were made more than once by some traps on the same occasion. CHECK DATA"))
+                                validate(need(class(detections$group) == "integer", "Please give group ID as a whole number"))
+                                validate(need(class(detections$occasion) == "integer", "Please give occasion ID as a whole number"))
+                                validate(need(class(detections$post) == "integer", "Please give post ID as a whole number"))
+                                if("bearing" %in% names(detections)){
+                                    validate(need(class(detections$bearing) == "numeric", "Please make sure all bearings are numeric"))
+                                    enable("bearing_range")
+                                    shinyjs::show("bearing_range")
+                                }else{
+                                    disable("bearing_range")
+                                    hide("bearing_range")
+                                }
+                                if("distance" %in% names(detections)){
+                                    validate(need(class(detections$distance) == "numeric", "Please make sure all distances are numeric"))
+                                    
+                                }
+                                return(detections)
+                            }
                         }
-                        if("distance" %in% names(detections)){
-                            validate(need(class(detections$distance) == "numeric", "Please make sure all distances are numeric"))
-                            
-                        }
-                        return(detections)
                     }
                 }
             }
@@ -125,8 +141,6 @@ shinyServer(function(input, output,session) {
             hide("header")
             hide("sep")
             hide("quote")
-            enable("which_example")
-            shinyjs::show("which_example")
             enable("trapType")
             shinyjs::show("trapType")
         }else{
@@ -140,10 +154,24 @@ shinyServer(function(input, output,session) {
             shinyjs::show("header")
             shinyjs::show("sep")
             shinyjs::show("quote")
-            disable("which_example")
-            hide("which_example")
             disable("trapType")
             hide("trapType")
+            disable("which_example_multi")
+            shinyjs::hide("which_example_multi")
+            disable("which_example")
+            shinyjs::hide("which_example")
+        }
+        if(input$trapType == "single" & input$example == TRUE){
+            enable("which_example")
+            shinyjs::show("which_example")
+            disable("which_example_multi")
+            shinyjs::hide("which_example_multi")
+        }
+        if(input$trapType == "multi" & input$example == TRUE){
+            disable("which_example")
+            shinyjs::hide("which_example")
+            enable("which_example_multi")
+            shinyjs::show("which_example_multi")
         }
         ## code to produce downloadable objects (i.e., plots and report)
         ## initislly disable some options if no model fitted
