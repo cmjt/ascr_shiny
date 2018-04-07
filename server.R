@@ -36,8 +36,6 @@ shinyServer(function(input, output,session) {
              
              validate(need("x" %in% names(traps) & "y" %in% names(traps) & "post" %in% names(traps),
                            "Trap file must contain columns named x, y, and post"))
-             validate(need(!("array" %in% names(traps) & length(table(traps$array)) > 1),
-                           "It seems you have multiple arrays, this software currently doesn't support this"))
              validate(need(class(traps$post)=="integer", "Please give post ID as a whole number"))
              validate(need(class(traps$x)%in%c("integer","numeric"), "Please ensure x coordinate is numeric"))
              validate(need(class(traps$y)%in%c("integer","numeric"), "Please ensure y coordinate is numeric"))
@@ -73,14 +71,14 @@ shinyServer(function(input, output,session) {
                         shinyjs::show("bearing_range")
                         return(detections)
                     }else{
-                        if("simple" %in% input$which_example & input$example == TRUE & input$trapType == "multi"){
+                        if("simple" %in% input$which_example_multi& input$example == TRUE & input$trapType == "multi"){
                             load("shiny_multi_detections.RData")
                             detections <- shiny_multi_detections[,1:4]
                             disable("bearing_range")
                             hide("bearing_range")
                             return(detections)
                         }else{
-                            if("bearings" %in% input$which_example & input$example == TRUE & input$trapType == "multi"){
+                            if("bearings" %in% input$which_example_multi & input$example == TRUE & input$trapType == "multi"){
                                 load("shiny_multi_detections.RData")
                                 detections <- shiny_multi_detections[,1:5]
                                 enable("bearing_range")
@@ -127,6 +125,13 @@ shinyServer(function(input, output,session) {
                 }
             }
         }
+    })
+    output$multiControls <- renderUI({
+        detections <- detections()
+        traps <- traps()
+        validate(need("array"%in%names(detections),""))
+        validate(need("array"%in%names(traps),""))
+        checkboxInput("split", "Split by array",TRUE)
     })
     ## Clunky way of enabling/disabling buttons
     observe({

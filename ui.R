@@ -71,6 +71,7 @@ shinyUI(fluidPage(
                          choices = c("Degrees" = "bd",
                                      "Radians" = "rad"),
                          selected = "rad",inline = TRUE),
+            uiOutput("multiControls"),
             numericInput("show.call.num", "Choose call number to display in location plot:",
                          min = 1, max = 1000,step = 1,
                          value = 1),
