@@ -131,7 +131,22 @@ shinyServer(function(input, output,session) {
         traps <- traps()
         validate(need("array"%in%names(detections),""))
         validate(need("array"%in%names(traps),""))
+        validate(need(sum(names(table(detections$array))%in%names(table(traps$array))) == length(names(table(detections$array))),
+                      "Array numbers must be the same in both detections and traps"))
         checkboxInput("split", "Split by array",TRUE)
+    })
+    output$which_array <- renderUI({
+        detections <- detections()
+        traps <- traps()
+        validate(need("array"%in%names(detections),""))
+        validate(need("array"%in%names(traps),""))
+        validate(need(input$split == TRUE,""))
+        arrs <- as.numeric(names(table(traps$array)))
+        mn <- min(arrs)
+        mx <- max(arrs)
+        numericInput("choose_trap", "Choose trap array (model fitting will use all arrays)",
+                     min = mn, max = mx,
+                     value = mn)
     })
     ## Clunky way of enabling/disabling buttons
     observe({
@@ -252,27 +267,55 @@ shinyServer(function(input, output,session) {
     })
     
     output$detections <- renderTable({
-       
         detections <- detections()
-        
         if(input$disp == "head") {
             return(head(detections))
-    }else{
-        return(detections)
-    }
-
+        }else{
+            return(detections)
+        }   
     },
     striped = TRUE)
 
     output$capt.hist <- renderTable({
-        detections <- detections()
-        capt.hist <- get.capt.hist(detections)
-        colnames(capt.hist[[1]]) <- names(table(detections$post))
-        rownames(capt.hist[[1]]) <- unique(paste("occasion",detections$occasion, "group", detections$group))
-        if(input$disp == "head") {
-            return(head(capt.hist[[1]]))
+        validate(need(!is.null(detections()),""))
+        if(input$example == TRUE & input$trapType == "single"){
+            detections <- detections()
+            capt.hist <- get.capt.hist(detections)
+            colnames(capt.hist[[1]]) <- names(table(detections$post))
+            rownames(capt.hist[[1]]) <- unique(paste("occasion",detections$occasion, "group", detections$group))
+            if(input$disp == "head") {
+                return(head(capt.hist[[1]]))
+            }else{
+                return(capt.hist[[1]])
+            }   
         }else{
-            return(capt.hist[[1]])
+            if(input$example == TRUE & input$split == TRUE & input$trapType == "multi"){
+                detections <- detections()
+                detections <- split(detections, detections$array)
+                capt.hist <- lapply(detections, get.capt.hist)
+                for(i in 1:length(capt.hist)){
+                    colnames(capt.hist[[i]][[1]]) <- names(table(detections[[i]]$post))
+                    rownames(capt.hist[[i]][[1]]) <- unique(paste("occasion",detections[[i]]$occasion, "group",
+                                                                  detections[[i]]$group))
+                }
+                if(input$disp == "head") {
+                    return(head(capt.hist[[input$choose_trap]][[1]]))
+                }else{
+                    return(capt.hist[[input$choose_trap]][[1]])
+                }  
+            }else{
+                if(input$example == TRUE & input$split == FALSE & input$trapType == "multi"){
+                    detections <- detections()
+                    capt.hist <- get.capt.hist(detections)
+                    colnames(capt.hist[[1]]) <- names(table(detections$post))
+                    rownames(capt.hist[[1]]) <- unique(paste("occasion",detections$occasion, "group", detections$group))
+                    if(input$disp == "head") {
+                        return(head(capt.hist[[1]]))
+                    }else{
+                        return(capt.hist[[1]])
+                    }  
+                }
+            }
         }
     },striped = TRUE,rownames = TRUE,colnames = TRUE,digits = 0)
     ## chage buffer slider based on trap range
