@@ -22,6 +22,18 @@ shinyUI(fluidPage(
             h3(icon("table"), tags$b("Read in data")),
             ## example data loading
             checkboxInput("example", "Use example data",value = FALSE), ## example
+             ## user data loading
+            fileInput("file1", "Choose CSV file of trap locations",
+                      multiple = FALSE,
+                      accept = c("text/csv",
+                                 "text/comma-separated-values,text/plain",
+                                 ".csv")),  ## Input: Select a csv file of trap locations
+            
+            fileInput("file2", "Choose CSV file of detections",
+                      multiple = FALSE,
+                      accept = c("text/csv",
+                                 "text/comma-separated-values,text/plain",
+                                 ".csv")),  ## Input: Select a csv file of detection locations
             radioButtons("trapType", "Single or multi array",
                          choices = c("Single" = "single",
                                      "Multiple" = "multi"),
@@ -36,20 +48,6 @@ shinyUI(fluidPage(
                          choices = c( "Simple" = "simple",
                                      "With bearings (rad)" = "bearings"),
                          inline = TRUE),
-
-
-            ## user data loading
-            fileInput("file1", "Choose CSV file of trap locations",
-                      multiple = FALSE,
-                      accept = c("text/csv",
-                                 "text/comma-separated-values,text/plain",
-                                 ".csv")),  ## Input: Select a csv file of trap locations
-            
-            fileInput("file2", "Choose CSV file of detections",
-                      multiple = FALSE,
-                      accept = c("text/csv",
-                                 "text/comma-separated-values,text/plain",
-                                 ".csv")),  ## Input: Select a csv file of detection locations
             checkboxInput("header", "Header", TRUE),
             radioButtons("sep", "Separator",
                          choices = c(Comma = ",",
@@ -71,7 +69,6 @@ shinyUI(fluidPage(
                          choices = c("Degrees" = "bd",
                                      "Radians" = "rad"),
                          selected = "rad",inline = TRUE),
-            uiOutput("multiControls"),
             uiOutput("which_array"),
             numericInput("show.call.num", "Choose call number to display in location plot:",
                          min = 1, max = 1000,step = 1,

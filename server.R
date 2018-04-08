@@ -126,21 +126,13 @@ shinyServer(function(input, output,session) {
             }
         }
     })
-    output$multiControls <- renderUI({
-        detections <- detections()
-        traps <- traps()
-        validate(need("array"%in%names(detections),""))
-        validate(need("array"%in%names(traps),""))
-        validate(need(sum(names(table(detections$array))%in%names(table(traps$array))) == length(names(table(detections$array))),
-                      "Array numbers must be the same in both detections and traps"))
-        checkboxInput("split", "Split by array",TRUE)
-    })
+    
     output$which_array <- renderUI({
         detections <- detections()
         traps <- traps()
         validate(need("array"%in%names(detections),""))
         validate(need("array"%in%names(traps),""))
-        validate(need(input$split == TRUE,""))
+        validate(need(input$trapType == "multi",""))
         arrs <- as.numeric(names(table(traps$array)))
         mn <- min(arrs)
         mx <- max(arrs)
@@ -161,8 +153,6 @@ shinyServer(function(input, output,session) {
             hide("header")
             hide("sep")
             hide("quote")
-            enable("trapType")
-            shinyjs::show("trapType")
         }else{
             enable("file1")
             enable("file2")
@@ -174,8 +164,6 @@ shinyServer(function(input, output,session) {
             shinyjs::show("header")
             shinyjs::show("sep")
             shinyjs::show("quote")
-            disable("trapType")
-            hide("trapType")
             disable("which_example_multi")
             shinyjs::hide("which_example_multi")
             disable("which_example")
@@ -278,29 +266,20 @@ shinyServer(function(input, output,session) {
 
     capthist <- reactive({
         validate(need(!is.null(detections()),""))
-        if(input$example == TRUE & input$trapType == "single"){
+        if(input$trapType == "multi"){
+            detections <- detections()
+            detections <- split(detections, detections$array)
+            capt.hist <- lapply(detections, get.capt.hist)
+            for(i in 1:length(capt.hist)){
+                colnames(capt.hist[[i]][[1]]) <- names(table(detections[[i]]$post))
+                rownames(capt.hist[[i]][[1]]) <- unique(paste("occasion",detections[[i]]$occasion, "group",
+                                                              detections[[i]]$group))
+                }
+        }else{
             detections <- detections()
             capt.hist <- get.capt.hist(detections)
             colnames(capt.hist[[1]]) <- names(table(detections$post))
             rownames(capt.hist[[1]]) <- unique(paste("occasion",detections$occasion, "group", detections$group))
-        }else{
-            if(input$example == TRUE & input$split == TRUE & input$trapType == "multi"){
-                detections <- detections()
-                detections <- split(detections, detections$array)
-                capt.hist <- lapply(detections, get.capt.hist)
-                for(i in 1:length(capt.hist)){
-                    colnames(capt.hist[[i]][[1]]) <- names(table(detections[[i]]$post))
-                    rownames(capt.hist[[i]][[1]]) <- unique(paste("occasion",detections[[i]]$occasion, "group",
-                                                                  detections[[i]]$group))
-                }
-            }else{
-                if(input$example == TRUE & input$split == FALSE & input$trapType == "multi"){
-                    detections <- detections()
-                    capt.hist <- get.capt.hist(detections)
-                    colnames(capt.hist[[1]]) <- names(table(detections$post))
-                    rownames(capt.hist[[1]]) <- unique(paste("occasion",detections$occasion, "group", detections$group))
-                }
-            }
         }
         return(capt.hist)
     })
@@ -309,14 +288,14 @@ shinyServer(function(input, output,session) {
         capthist <- capthist()
         traps <- traps()
         validate(need(!is.null(capthist),""))
-        if(input$example == TRUE & input$trapType == "single"){
+        if(input$trapType == "single"){
             if(input$disp == "head") {
                 return(head(capthist[[1]]))
             }else{
                 return(capthist[[1]])
             }   
         }else{
-            if(input$example == TRUE & input$split == TRUE & input$trapType == "multi"){
+            if(input$trapType == "multi"){
                 if(input$disp == "head") {
                     validate(need(input$choose_trap <= max(as.numeric(names(table(traps$array)))),"Please provide valid array"))
                     return(head(capthist[[input$choose_trap]][[1]]))
@@ -324,14 +303,7 @@ shinyServer(function(input, output,session) {
                     validate(need(input$choose_trap <= max(as.numeric(names(table(traps$array)))),"Please provide valid array"))
                     return(capthist[[input$choose_trap]][[1]])
                 }  
-            }else{
-                if(input$example == TRUE & input$split == FALSE & input$trapType == "multi"){
-                    if(input$disp == "head") {
-                        return(head(capthist[[1]]))
-                    }else{
-                        return(capthist[[1]])
-                    }  
-                }
+                
             }
         }
     },striped = TRUE,rownames = TRUE,colnames = TRUE,digits = 0)
