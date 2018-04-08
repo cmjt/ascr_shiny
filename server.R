@@ -334,7 +334,7 @@ shinyServer(function(input, output,session) {
             validate(need(input$show.call.num <= nrow(capt.hist[[input$choose_trap]]$bincapt),
                           "Please provide a valid call number"))
             show.data(traps[[input$choose_trap]], capt.hist[[input$choose_trap]],id = input$show.call.num)
-            legend("top",legend = paste("array", input$chose_trap, " call",input$show.call.num,sep = " "),bty = "n")
+            legend("top",legend = paste("array", input$choose_trap, " call",input$show.call.num,sep = " "),bty = "n")
         }
     })
     ## change buffer sliding in advanced increase buffer option chosen
@@ -344,16 +344,32 @@ shinyServer(function(input, output,session) {
         updateSliderInput(session, "buffer", max = maxdistance,value = maxdistance/2)
         }
     })
-    ## plot of mask 
-    output$maskPlot <- renderPlot({
-        
+    ## plot of mask
+    mask <- reactive({
         traps <- traps()
-        
-        traps <- as.matrix(cbind(traps$x,traps$y))
         validate(need(input$buffer > input$spacing,"The mask buffer cannot be less than the spacing"))
         validate(need(input$buffer/input$spacing < 80, "Infeasibly fine mask"))
-        mask <- create.mask(traps,input$buffer,input$spacing)
-        show.mask(mask,traps)
+        if(input$trapType == "single"){
+            traps <- as.matrix(cbind(traps$x,traps$y))
+            mask <- create.mask(traps,input$buffer,input$spacing)
+        }else{
+            traps <- split(traps, traps$array)
+            traps <- lapply(traps,function(x) cbind(x$x,x$y))
+            mask <- lapply(traps,create.mask,buffer = input$buffer,spacing = input$spacing)
+        }
+        return(mask)
+    })
+    output$maskPlot <- renderPlot({
+        traps <- traps()
+        mask <- mask()
+        if(input$trapType == "single"){
+            traps <- as.matrix(cbind(traps$x,traps$y))
+            show.mask(mask,traps)
+        }else{
+            traps <- split(traps, traps$array)
+            traps <- lapply(traps,function(x) cbind(x$x,x$y))
+            show.mask(mask[[input$choose_trap]],traps[[input$choose_trap]])
+            }
         
     },width = 500, height = 500)
     ## print out mask buffet info
@@ -450,11 +466,15 @@ shinyServer(function(input, output,session) {
             }
         }
         
-        traps <- as.matrix(cbind(traps$x,traps$y))
-        mask <- create.mask(traps,input$buffer,input$spacing)
+        if(input$trapType == "single"){
+            traps <- as.matrix(cbind(traps$x,traps$y)) 
+        }else{
+            traps <- split(traps, traps$array)
+            traps <- lapply(traps,function(x) cbind(x$x,x$y))  
+        }
+        mask <- mask()
         nms <- names(detections)
-        
-        capt.hist <- get.capt.hist(detections)
+        capt.hist <- capthist()
         ## fixed values
         param.fix <- input$parameter
         param.fix.value <- list(g0 = input$g0,sigma = input$sigma,z = input$z,shape = input$shape,
@@ -534,8 +554,8 @@ shinyServer(function(input, output,session) {
         fit <- fit()
         if(class(fit)[1] == "ascr"){
             par(mfrow = c(1,2))
-            show.detsurf(fit)
-            show.detsurf(fit,surface = FALSE)    
+            show.detsurf(fit,session = input$choose_trap)
+            show.detsurf(fit,,session = input$choose_trap, surface = FALSE)    
         }else{
             plot(1,1,col="white",axes = FALSE,xlab = "",ylab = "")
             text(1,1,paste("convergence issues try advanced options"),col = "grey")
@@ -546,7 +566,7 @@ shinyServer(function(input, output,session) {
         if(class(fit)[1]=="ascr"){
             detfn <- fit$args$detfn
             pars <- get.par(fit, pars = fit$detpars, cutoff = fit$fit.types["ss"],as.list = TRUE)
-            buffer <- attr(get.mask(fit), "buffer")
+            buffer <- attr(get.mask(fit,session = input$choose_trap), "buffer")
             probs <- ascr:::calc.detfn(buffer, detfn = detfn, pars = pars,ss.link =fit$args$ss.opts$ss.link)
             ascr:::show.detfn(fit)
             if(probs >= 0.1){
@@ -579,11 +599,16 @@ shinyServer(function(input, output,session) {
                     
     output$locs <- renderPlot({
         fit <- fit()
+        mask <- mask()
+        if(input$trapType == "single"){
+            msk <- mask()
+        }else{
+            msk <- mask[[input$choose_trap]]
+        }
         if(class(fit)[1]=="ascr"){
             validate(need(input$call.num,"Please provide a call number"))
             validate(need(input$call.num <= nrow(fit$args$capt[[1]]$bincapt),"Please provide a valid call number"))
             if("fine" %in% input$advancedOptions & is.null(ranges$x)){
-                traps <- traps()
                 validate(need(input$plotmaskspacing,
                               "Please provide a spacing for the (plotting) mask or uncheck this option"))
                 validate(need(input$plotmaskspacing > 0,
@@ -592,7 +617,6 @@ shinyServer(function(input, output,session) {
                               "The mask buffer cannot be less than the (plotting) mask spacing"))
                 validate(need(input$plotmaskspacing < input$spacing,
                               "To obtain a smooth plot the (plotting) mask spacing should be finer than the model fit mask "))
-                msk <- create.mask(traps,input$buffer,input$plotmaskspacing)
                 locations(fit,input$call.num,mask = msk)
                 legend("top",legend = paste("call",input$call.num,sep = " "),bty = "n")
             }else{
@@ -601,7 +625,6 @@ shinyServer(function(input, output,session) {
                     legend("top",legend = paste("call",input$call.num,sep = " "),bty = "n")
                 }else{
                     if("fine" %in% input$advancedOptions & !is.null(ranges$x)){
-                        traps <- traps()
                         validate(need(input$plotmaskspacing,
                                       "Please provide a spacing for the (plotting) mask or uncheck this option"))
                         validate(need(input$plotmaskspacing > 0,
@@ -609,12 +632,21 @@ shinyServer(function(input, output,session) {
                         validate(need(input$buffer > input$plotmaskspacing,
                                       "The mask buffer cannot be less than the (plotting) mask spacing"))
                         validate(need(input$plotmaskspacing < input$spacing,
-                                      "To obtain a smooth plot the (plotting) mask spacing should be finer than the model fit mask "))
-                        msk <- create.mask(traps,input$buffer,input$plotmaskspacing)
-                        locations(fit,input$call.num,mask = msk,xlim = ranges$x, ylim = ranges$y)
+                                      "To obtain a smooth plot the (plotting) mask spacing should be finer than the model fit mask ")) 
+                        if(input$trapType == "single"){
+                            locations(fit,input$call.num,mask = msk,xlim = ranges$x, ylim = ranges$y)
+                        }else{
+                            locations(fit,session = input$choose_trap,input$call.num,mask = msk,xlim = ranges$x, ylim = ranges$y)
+                        }
+                        
                         legend("top",legend = paste("call",input$call.num,sep = " "),bty = "n")
                     }else{
-                        locations(fit,input$call.num)
+                        if(input$trapType == "single"){
+                            locations(fit, input$call.num)
+                        }else{
+                            locations(fit,session = input$choose_trap, input$call.num)
+                        }
+                        
                         legend("top",legend = paste("call",input$call.num,sep = " "),bty = "n")
                     }
                 }
@@ -740,54 +772,54 @@ shinyServer(function(input, output,session) {
             save(fit,file = file)
         }
     )
-    output$report <- downloadHandler(
+    ## output$report <- downloadHandler(
           
-        filename = "report.html",
-        content = function(file) {
-            disable("downloadSurfPlot")
-            disable("downloadContPlot")
-            disable("downloadDetPlot")
-            disable("downloadMask")
-            disable("downloadModel")
-            disable("side-panel")
-            disable("downloadbearingPlot")
-            disable("downloaddistancePlot")
-            disable("anispeed")
-            disable("report")
-            shinyjs::show("proc_report")
+    ##     filename = "report.html",
+    ##     content = function(file) {
+    ##         disable("downloadSurfPlot")
+    ##         disable("downloadContPlot")
+    ##         disable("downloadDetPlot")
+    ##         disable("downloadMask")
+    ##         disable("downloadModel")
+    ##         disable("side-panel")
+    ##         disable("downloadbearingPlot")
+    ##         disable("downloaddistancePlot")
+    ##         disable("anispeed")
+    ##         disable("report")
+    ##         shinyjs::show("proc_report")
             
-            ## Copy the report file to a temporary directory before processing it, in
-            ## case we don't have write permissions to the current working dir (which
-            ## can happen when deployed).
+    ##         ## Copy the report file to a temporary directory before processing it, in
+    ##         ## case we don't have write permissions to the current working dir (which
+    ##         ## can happen when deployed).
                              
-            tempReport <- file.path(tempdir(), "report.Rmd")
-            file.copy("report.Rmd", tempReport, overwrite = TRUE)
+    ##         tempReport <- file.path(tempdir(), "report.Rmd")
+    ##         file.copy("report.Rmd", tempReport, overwrite = TRUE)
                              
-            ## Set up parameters to pass to Rmd document
-            params <- list(buffer = input$buffer,
-                           spacing = input$spacing,
-                           fit = fit(),
-                           anispeed = input$anispeed,
-                           dist = input$distD)
-            ## Knit the document, passing in the `params` list, and eval it in a
-            ## child of the global environment (this isolates the code in the document
-            ## from the code in this app).
-            render(tempReport, output_file = file,
-                   params = params,
-                   envir = new.env(parent = globalenv())
-                   )
-            enable("downloadSurfPlot")
-            enable("downloadContPlot")
-            enable("downloadDetPlot")
-            enable("side-panel")
-            enable("downloadbearingPlot")
-            enable("downloaddistancePlot")
-            enable("anispeed")
-            enable("downloadMask")
-            enable("downloadModel")
-            enable("report")
-            hide("proc_report")
-        })
+    ##         ## Set up parameters to pass to Rmd document
+    ##         params <- list(buffer = input$buffer,
+    ##                        spacing = input$spacing,
+    ##                        fit = fit(),
+    ##                        anispeed = input$anispeed,
+    ##                        dist = input$distD)
+    ##         ## Knit the document, passing in the `params` list, and eval it in a
+    ##         ## child of the global environment (this isolates the code in the document
+    ##         ## from the code in this app).
+    ##         render(tempReport, output_file = file,
+    ##                params = params,
+    ##                envir = new.env(parent = globalenv())
+    ##                )
+    ##         enable("downloadSurfPlot")
+    ##         enable("downloadContPlot")
+    ##         enable("downloadDetPlot")
+    ##         enable("side-panel")
+    ##         enable("downloadbearingPlot")
+    ##         enable("downloaddistancePlot")
+    ##         enable("anispeed")
+    ##         enable("downloadMask")
+    ##         enable("downloadModel")
+    ##         enable("report")
+    ##         hide("proc_report")
+    ##     })
     observeEvent(input$reset_input, {
         updateSliderInput(session, "spacing", max = 1000, value = 250)
         updateSliderInput(session, "buffer", max =10000, value = 1000)
