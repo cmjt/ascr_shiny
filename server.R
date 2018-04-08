@@ -321,13 +321,21 @@ shinyServer(function(input, output,session) {
     })
     ## show all plot for raw data
     output$show <- renderPlot({
-        detections <- detections()
         traps <- traps()
-        capt.hist <- get.capt.hist(detections)
-        validate(need(input$show.call.num,"Please provide a call number"))
-        validate(need(input$show.call.num <= nrow(capt.hist$bincapt),"Please provide a valid call number"))
-        show.data(traps, capt.hist,id = input$show.call.num)
-        legend("top",legend = paste("call",input$show.call.num,sep = " "),bty = "n")
+        capt.hist <- capthist()
+        if(input$trapType == "single"){
+            validate(need(input$show.call.num,"Please provide a call number"))
+            validate(need(input$show.call.num <= nrow(capt.hist$bincapt),"Please provide a valid call number"))
+            show.data(traps, capt.hist,id = input$show.call.num)
+            legend("top",legend = paste("call",input$show.call.num,sep = " "),bty = "n")
+        }else{
+            traps <- split(traps, traps$array)
+            validate(need(input$show.call.num,"Please provide a call number"))
+            validate(need(input$show.call.num <= nrow(capt.hist[[input$choose_trap]]$bincapt),
+                          "Please provide a valid call number"))
+            show.data(traps[[input$choose_trap]], capt.hist[[input$choose_trap]],id = input$show.call.num)
+            legend("top",legend = paste("array", input$chose_trap, " call",input$show.call.num,sep = " "),bty = "n")
+        }
     })
     ## change buffer sliding in advanced increase buffer option chosen
     observe({
