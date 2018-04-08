@@ -276,18 +276,13 @@ shinyServer(function(input, output,session) {
     },
     striped = TRUE)
 
-    output$capt.hist <- renderTable({
+    capthist <- reactive({
         validate(need(!is.null(detections()),""))
         if(input$example == TRUE & input$trapType == "single"){
             detections <- detections()
             capt.hist <- get.capt.hist(detections)
             colnames(capt.hist[[1]]) <- names(table(detections$post))
             rownames(capt.hist[[1]]) <- unique(paste("occasion",detections$occasion, "group", detections$group))
-            if(input$disp == "head") {
-                return(head(capt.hist[[1]]))
-            }else{
-                return(capt.hist[[1]])
-            }   
         }else{
             if(input$example == TRUE & input$split == TRUE & input$trapType == "multi"){
                 detections <- detections()
@@ -298,21 +293,43 @@ shinyServer(function(input, output,session) {
                     rownames(capt.hist[[i]][[1]]) <- unique(paste("occasion",detections[[i]]$occasion, "group",
                                                                   detections[[i]]$group))
                 }
-                if(input$disp == "head") {
-                    return(head(capt.hist[[input$choose_trap]][[1]]))
-                }else{
-                    return(capt.hist[[input$choose_trap]][[1]])
-                }  
             }else{
                 if(input$example == TRUE & input$split == FALSE & input$trapType == "multi"){
                     detections <- detections()
                     capt.hist <- get.capt.hist(detections)
                     colnames(capt.hist[[1]]) <- names(table(detections$post))
                     rownames(capt.hist[[1]]) <- unique(paste("occasion",detections$occasion, "group", detections$group))
+                }
+            }
+        }
+        return(capt.hist)
+    })
+
+    output$capt.hist <- renderTable({
+        capthist <- capthist()
+        traps <- traps()
+        validate(need(!is.null(capthist),""))
+        if(input$example == TRUE & input$trapType == "single"){
+            if(input$disp == "head") {
+                return(head(capthist[[1]]))
+            }else{
+                return(capthist[[1]])
+            }   
+        }else{
+            if(input$example == TRUE & input$split == TRUE & input$trapType == "multi"){
+                if(input$disp == "head") {
+                    validate(need(input$choose_trap <= max(as.numeric(names(table(traps$array)))),"Please provide valid array"))
+                    return(head(capthist[[input$choose_trap]][[1]]))
+                }else{
+                    validate(need(input$choose_trap <= max(as.numeric(names(table(traps$array)))),"Please provide valid array"))
+                    return(capthist[[input$choose_trap]][[1]])
+                }  
+            }else{
+                if(input$example == TRUE & input$split == FALSE & input$trapType == "multi"){
                     if(input$disp == "head") {
-                        return(head(capt.hist[[1]]))
+                        return(head(capthist[[1]]))
                     }else{
-                        return(capt.hist[[1]])
+                        return(capthist[[1]])
                     }  
                 }
             }
