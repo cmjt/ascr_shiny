@@ -3,7 +3,9 @@ title: "**ascr** user interface manual"
 author: "Charlotte M. Jones-Todd (cmjonestodd@gmail.com)"
 date: ""
 output:
-    html_document
+    html_document:
+      toc: true
+      toc_float: true
 ---
 
 
