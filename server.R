@@ -94,15 +94,6 @@ shinyServer(function(input, output,session) {
                                 validate(need("occasion" %in% names(detections) & "group" %in% names(detections) &
                                               "post" %in% names(detections),
                                               "Detections file must contain columns named occasion, group, and post"))
-                                ## checking the same group was not heard on by same trap more than once on the same occasion
-                                can1 <- 1/2 * (as.numeric(detections$post) +
-                                               detections$group)* (as.numeric(detections$post) +
-                                                                   detections$group + 1) + detections$group
-                                validate(need(
-                                    length(
-                                        table(1/2 *(can1 + detections$occasion) *(can1 + detections$occasion + 1) +
-                                              detections$occasion)) == nrow(detections),
-                                    "Detections were made more than once by some traps on the same occasion. CHECK DATA"))
                                 validate(need(class(detections$group) == "integer", "Please give group ID as a whole number"))
                                 validate(need(class(detections$occasion) == "integer", "Please give occasion ID as a whole number"))
                                 validate(need(class(detections$post) == "integer", "Please give post ID as a whole number"))
