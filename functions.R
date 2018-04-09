@@ -31,10 +31,10 @@ show.mask <- function(mask = NULL,traps = NULL){
 #' Function to plot Von Mises distribution of bearing measurement error
 #' from model.
 #' @param fit ascr model
-show.dvm <- function(fit = NULL){
-    theta = sort(fit$args$capt[[1]]$bearing - pi)
-    val <- CircStats::dvm(theta = theta,mu = 0, kappa = fit$coefficients["kappa"])
-    plot(theta,val, type="l",xlim = c(-pi/2,pi/2),ylim = range(0,max(val)), main = "", axes = FALSE, xlab = "bearings (rad)", ylab = "")
+show.dvm <- function(theta = NULL, kappa = NULL){
+    val <- CircStats::dvm(theta = theta,mu = 0, kappa = kappa)
+    plot(theta,val, type="l",xlim = c(-pi/2,pi/2),ylim = range(0,max(val)),
+         main = "", axes = FALSE, xlab = "bearings (rad)", ylab = "")
     axis(1, at = c(-pi/2,0,pi/2), labels = c(expression(-pi/2),0,expression(pi/2)))
     axis(2)
 }
@@ -43,10 +43,9 @@ show.dvm <- function(fit = NULL){
 #' from model.
 #' @param fit ascr model
 #' @param d distance of call/animal at which to plot
-show.distgam <- function(fit = NULL,d = NULL){
-    x <- sort(fit$args$capt[[1]]$dist)
-    val <- dgamma(x = x, shape = fit$coefficients["alpha"],
-                  scale = d/fit$coefficients["alpha"])
+show.distgam <- function(x = NULL, shape = NULL,d = NULL){
+    val <- dgamma(x = x, shape = shape,
+                  scale = d/shape)
     plot(x,val, type="l",ylim = range(val), main = "", axes = FALSE, xlab = "distance (m)", ylab = "")
     axis(1)
     axis(2)    

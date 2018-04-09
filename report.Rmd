@@ -7,6 +7,8 @@ params:
   fit: NA
   anispeed: = NA
   dist: NA
+  array: NA
+  multi: NA
 ---
 ```{r setup, eval = TRUE, echo = FALSE}
 bear <- FALSE
@@ -19,16 +21,26 @@ if(!is.null(params$fit$args$capt$dist)){distance <- TRUE}
 if(params$fit$args$detfn == "hn"){hn <- TRUE}
 if(params$fit$args$detfn == "hr"){hr <- TRUE}
 if(params$fit$args$detfn == "th"){th <- TRUE}
+session <- ifelse(params$multi == "single", 1, params$array)
 ```
 
 ### Data and Mask
 
-The data included a total of `r nrow(params$fit$args$capt$bincapt)` calls and `r ncol(params$fit$args$capt$bincapt)` traps.
 
 The mask used had a `r params$buffer` meter buffer and spacing of `r params$spacing` meters.
 
 ```{r plot mask,eval = TRUE,echo = FALSE}
-show.mask(params$fit$args$mask,params$fit$args$traps)
+if(params$multi == "single"){
+  traps <- params$fit$args$traps[[1]]
+  mask <- params$fit$args$mask[[1]]
+  show.mask(mask,traps)
+}else{
+  traps <- params$fit$args$traps[[params$array]]
+  mask <- params$fit$args$mask[[params$array]]	
+  show.mask(mask,traps)
+  title(paste("array",params$array))
+}
+
 ```
 
 
@@ -45,11 +57,11 @@ summary(params$fit)
 ### Detection surface
 
 ```{r plot set.cont,eval=TRUE,echo=FALSE,warning=FALSE,message=FALSE}
-show.detsurf(params$fit,surface  = FALSE)
+show.detsurf(params$fit,surface  = FALSE,session = session)
 ```
 
 ```{r plot set.surf,eval=TRUE,echo=FALSE,warning=FALSE,message=FALSE}
-show.detsurf(params$fit)
+show.detsurf(params$fit,session = session)
 ```
 
 
@@ -68,7 +80,7 @@ cat("$$g(d) = 0.5 - 0.5 \\; erf( \\frac{d}{\\text{scale}} - \\text{shape})$$")
 ```
 
 ```{r plot.detfn, eval=TRUE,echo=FALSE}
-show.detfn(params$fit)
+show.detfn(params$fit, session = session)
 ```
 
 
@@ -80,7 +92,15 @@ cat("### Bearing distribution")
 ```
 
 ```{r plot bear,eval = bear,echo = FALSE}
-show.dvm(params$fit)
+kappa = params$fit$coefficients["kappa"]
+if(params$multi == "single"){
+  theta = sort(params$fit$args$capt[[1]]$bearing - pi)
+  show.dvm(theta = theta, kappa = kappa)
+}else{
+  theta = sort(arams$fit$args$capt[[params$array]]$bearing - pi)
+  show.dvm(theta = theta, kappa = kappa)
+  title(paste("array", params$array))
+}
 ```
 
 ```{r distance,eval = distance,results = 'asis',message = FALSE,echo = FALSE}
@@ -91,22 +111,35 @@ cat(paste("Distance distribution evaluated at", params$dist, "m"))
 ```
 
 ```{r plot dist,eval = distance,echo = FALSE}
-show.distgam(params$fit,  d = params$dist)
-```
+d <- params$dist
+shape <- paramsfit$coefficients["alpha"]
+if(params$multi == "single"){
+  x <- sort(paramsfit$args$capt[[1]]$dist)
+  show.distgam(x = x, shape = shape, d = d)
+}else{
+  x <- sort(params$fit$args$capt[[params$array]]$dist)
+  show.distgam(x = x, shape = shape, d = d)
+  title(paste("array", params$array))
+}
+```		
 
 
 
 ### Estimated call locations
 
 ```{r animation, eval=TRUE,echo=FALSE,fig.show='animate',message=FALSE,fig.height=7,fig.width=7}
-frames <- nrow(params$fit$args$capt$bincapt)
+if(params$multi == "single"){
+  frames <- nrow(params$fit$args$capt[[1]]$bincapt)
+}else{
+  frames <- nrow(params$fit$args$capt[[params$array]]$bincapt)
+}
 oopt = ani.options(interval = params$anispeed,loop = 1, nmax = frames,ani.width = 600,ani.height = 600)
 out <- vector("list", frames)
 for (i in 1:ani.options("nmax")) {
-  locations(params$fit,i)
+  locations(params$fit,i,session = session)
   legend("top",legend = paste("call",i,sep = " "),bty = "n")
   ani.pause()
-  }
+}
 
 ani.options(oopt)
 

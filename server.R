@@ -605,6 +605,7 @@ shinyServer(function(input, output,session) {
         }else{
             msk <- mask[[input$choose_trap]]
         }
+        
         if(class(fit)[1]=="ascr"){
             validate(need(input$call.num,"Please provide a call number"))
             validate(need(input$call.num <= nrow(fit$args$capt[[1]]$bincapt),"Please provide a valid call number"))
@@ -663,8 +664,15 @@ shinyServer(function(input, output,session) {
     output$bearing_pdf <- renderPlot({
         fit <- fit()
         validate(need(!is.null(fit$args$capt[[1]]$bearing),"No bearing data provided"))
-        show.dvm(fit)
-
+        kappa = fit$coefficients["kappa"]
+        if(input$trapType == "single"){
+            theta = sort(fit$args$capt[[1]]$bearing - pi)
+            show.dvm(theta = theta, kappa = kappa)
+        }else{
+            theta = sort(fit$args$capt[[input$choose_trap]]$bearing - pi)
+            show.dvm(theta = theta, kappa = kappa)
+            title(paste("array", input$choose_trap))
+            }
     })
     output$distance_pdf <- renderPlot({
         fit <- fit()
@@ -672,18 +680,32 @@ shinyServer(function(input, output,session) {
         validate(need(!(input$distD == 0), "Distance cannot be zero"))
         validate(need(!is.null(input$distD), "Please provide distance for measurement error distribution"))
         validate(need(input$distD < max(fit$args$capt[[1]]$dist),"Distance cannot be greater than those observed"))
-        show.distgam(fit, d = input$distD)
+        d <- input$distD
+        shape <- fit$coefficients["alpha"]
+        if(input$trapType == "single"){
+            x <- sort(fit$args$capt[[1]]$dist)
+            show.distgam(x = x, shape = shape, d = d)
+        }else{
+            x <- sort(fit$args$capt[[input$choose_trap]]$dist)
+            show.distgam(x = x, shape = shape, d = d)
+            title(paste("array", input$choose_trap))
+        }
     })
-        
+    
     output$downloadMask <- downloadHandler(
-      filename = "ascrMask.png",
+        filename = "ascrMask.png",
       content = function(file) {
           png(file)
-          
           traps <- traps()
-          traps <- as.matrix(cbind(traps$x,traps$y))
-          mask <- create.mask(traps,input$buffer,input$spacing)
-          show.mask(mask,traps)
+          mask <- mask()
+          if(input$trapType == "single"){
+              traps <- as.matrix(cbind(traps$x,traps$y))
+            show.mask(mask,traps)
+          }else{
+            traps <- split(traps, traps$array)
+            traps <- lapply(traps,function(x) cbind(x$x,x$y))
+            show.mask(mask[[input$choose_trap]],traps[[input$choose_trap]])
+        }
           dev.off()
       })
     output$downloadSurfPlot <- downloadHandler(
@@ -744,8 +766,16 @@ shinyServer(function(input, output,session) {
         content = function(file) {
             png(file)
             fit <- fit()
-            if(class(fit)[1]=="ascr"){  
-                show.dvm(fit)
+            if(class(fit)[1]=="ascr"){ 
+                kappa = fit$coefficients["kappa"]
+                if(input$trapType == "single"){
+                    theta = sort(fit$args$capt[[1]]$bearing - pi)
+                    show.dvm(theta = theta, kappa = kappa)
+                }else{
+                    theta = sort(fit$args$capt[[input$choose_trap]]$bearing - pi)
+                    show.dvm(theta = theta, kappa = kappa)
+                    title(paste("array", input$choose_trap))
+                }
             }else{
                 NULL
             }
@@ -756,8 +786,17 @@ shinyServer(function(input, output,session) {
         content = function(file) {
             png(file)
             fit <- fit()
-            if(class(fit)[1]=="ascr"){  
-               show.distgam(fit, d = input$distD)
+            if(class(fit)[1]=="ascr"){
+                d <- input$distD
+                shape <- fit$coefficients["alpha"]
+                if(input$trapType == "single"){
+                    x <- sort(fit$args$capt[[1]]$dist)
+                    show.distgam(x = x, shape = shape, d = d)
+                }else{
+                    x <- sort(fit$args$capt[[input$choose_trap]]$dist)
+                    show.distgam(x = x, shape = shape, d = d)
+                    title(paste("array", input$choose_trap))
+                }
             }else{
                 NULL
             }
@@ -767,59 +806,60 @@ shinyServer(function(input, output,session) {
     output$downloadModel <- downloadHandler(
         filename = paste("ascr_",date(),".RData",sep = ""),
         content = function(file){
-            
             fit <- fit()
             save(fit,file = file)
         }
     )
-    ## output$report <- downloadHandler(
+    output$report <- downloadHandler(
           
-    ##     filename = "report.html",
-    ##     content = function(file) {
-    ##         disable("downloadSurfPlot")
-    ##         disable("downloadContPlot")
-    ##         disable("downloadDetPlot")
-    ##         disable("downloadMask")
-    ##         disable("downloadModel")
-    ##         disable("side-panel")
-    ##         disable("downloadbearingPlot")
-    ##         disable("downloaddistancePlot")
-    ##         disable("anispeed")
-    ##         disable("report")
-    ##         shinyjs::show("proc_report")
+        filename = "report.html",
+        content = function(file) {
+            disable("downloadSurfPlot")
+            disable("downloadContPlot")
+            disable("downloadDetPlot")
+            disable("downloadMask")
+            disable("downloadModel")
+            disable("side-panel")
+            disable("downloadbearingPlot")
+            disable("downloaddistancePlot")
+            disable("anispeed")
+            disable("report")
+            shinyjs::show("proc_report")
             
-    ##         ## Copy the report file to a temporary directory before processing it, in
-    ##         ## case we don't have write permissions to the current working dir (which
-    ##         ## can happen when deployed).
+            ## Copy the report file to a temporary directory before processing it, in
+            ## case we don't have write permissions to the current working dir (which
+            ## can happen when deployed).
                              
-    ##         tempReport <- file.path(tempdir(), "report.Rmd")
-    ##         file.copy("report.Rmd", tempReport, overwrite = TRUE)
+            tempReport <- file.path(tempdir(), "report.Rmd")
+            file.copy("report.Rmd", tempReport, overwrite = TRUE)
                              
-    ##         ## Set up parameters to pass to Rmd document
-    ##         params <- list(buffer = input$buffer,
-    ##                        spacing = input$spacing,
-    ##                        fit = fit(),
-    ##                        anispeed = input$anispeed,
-    ##                        dist = input$distD)
-    ##         ## Knit the document, passing in the `params` list, and eval it in a
-    ##         ## child of the global environment (this isolates the code in the document
-    ##         ## from the code in this app).
-    ##         render(tempReport, output_file = file,
-    ##                params = params,
-    ##                envir = new.env(parent = globalenv())
-    ##                )
-    ##         enable("downloadSurfPlot")
-    ##         enable("downloadContPlot")
-    ##         enable("downloadDetPlot")
-    ##         enable("side-panel")
-    ##         enable("downloadbearingPlot")
-    ##         enable("downloaddistancePlot")
-    ##         enable("anispeed")
-    ##         enable("downloadMask")
-    ##         enable("downloadModel")
-    ##         enable("report")
-    ##         hide("proc_report")
-    ##     })
+            ## Set up parameters to pass to Rmd document
+            params <- list(buffer = input$buffer,
+                           spacing = input$spacing,
+                           fit = fit(),
+                           anispeed = input$anispeed,
+                           dist = input$distD,
+                           array = input$choose_trap,
+                           multi = input$trapType)
+            ## Knit the document, passing in the `params` list, and eval it in a
+            ## child of the global environment (this isolates the code in the document
+            ## from the code in this app).
+            render(tempReport, output_file = file,
+                   params = params,
+                   envir = new.env(parent = globalenv())
+                   )
+            enable("downloadSurfPlot")
+            enable("downloadContPlot")
+            enable("downloadDetPlot")
+            enable("side-panel")
+            enable("downloadbearingPlot")
+            enable("downloaddistancePlot")
+            enable("anispeed")
+            enable("downloadMask")
+            enable("downloadModel")
+            enable("report")
+            hide("proc_report")
+        })
     observeEvent(input$reset_input, {
         updateSliderInput(session, "spacing", max = 1000, value = 250)
         updateSliderInput(session, "buffer", max =10000, value = 1000)

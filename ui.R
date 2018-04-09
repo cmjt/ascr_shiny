@@ -126,10 +126,10 @@ shinyUI(fluidPage(
             downloadButton('downloaddistancePlot', 'Distance distribution (m)'),
             ## Other stuff
             h3(icon("ellipsis-h"),tags$b("Other")),
-            ## numericInput("anispeed","Animation frame rate for report (s)",
-            ##              min = 0.1,max = 5,step = 0.1,
-            ##              value = 1),
-            ## downloadButton("report", "Model report"),
+            numericInput("anispeed","Animation frame rate for report (s)",
+                         min = 0.1,max = 5,step = 0.1,
+                         value = 1),
+            downloadButton("report", "Model report"),
             hidden(p(id = "proc_report", "Processing report...")),
             
             actionButton("reset_input", "Reset sidebar",icon("refresh")),
