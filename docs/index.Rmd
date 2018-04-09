@@ -3,7 +3,7 @@ title: "**ascr** user interface manual"
 author: "Charlotte M. Jones-Todd (cmjonestodd@gmail.com)"
 date: ""
 output:
-    pdf_document:
+    html_document:
         includes:
             in_header: my-style.sty
         
@@ -18,8 +18,7 @@ output:
 ### pdf tags
 ##includes:
 ##in_header: my-style.sty
-knitr::opts_chunk$set(echo = TRUE,fig.align="center")
-pdf <- TRUE
+knitr::opts_chunk$set(echo = TRUE,fig.align="center",eval = TRUE)
 ```
 
 
@@ -27,67 +26,25 @@ pdf <- TRUE
 
 The `ascr` ("acoustic spatial capture-recapture") package provides software implementation for the fitting of spatial capture-recapture models for acoustic data.
 
-This manual details a user interface which may be used to fit these models. This application was developed in partnership with IUCN SSC primate specialist group section on small apes.
-
-```{r pdf, echo = FALSE, eval = !pdf,results = 'asis',message = FALSE}
-cat("A `.pdf` version is available [here](https://github.com/cmjt/ascr/blob/master/docs/index.pdf)")
-```
-
-```{r web, echo = FALSE, eval = pdf,results = 'asis',message = FALSE}
-cat("An online manual is available [here](https://cmjt.github.io/ascr/).")
-```
-
-## Requirements
-
-### Install R
-
-`ascr` is an `R` package. Please ensure that you have the latest version of R installed.
-
-Download `R` for [Windows](https://cran.r-project.org/bin/windows/base/)
-
-Download `R` for [Linux](https://cran.r-project.org/)
-
-Download `R` for [Mac](https://cran.r-project.org/bin/macosx/)
-
-### Install `ascr` package
+This manual details a user interface which may be used to fit these models. This application was developed in partnership with IUCN SSC primate specialist group section on small apes. All source code is available [here](https://github.com/cmjt/ascr_shiny)
 
 
-#### From `R`
+## Using the 'ascr' interface
 
-`ascr` is an `R` package written by [Ben C. Stevenson](ben.stevenson@auckland.ac.nz), all source code is available [here](https://github.com/b-steve/ascr).
+### Online
 
-* To install simply run [this](https://raw.githubusercontent.com/b-steve/ascr/master/inst/scripts/install.r) script in `R`.
+Follow this [link](https://cmjt.shinyapps.io/ascr_shiny/)
 
-* To load the package run `library(ascr)`
-
-* To test the ADMB executable follow instructions in this [README.md](https://github.com/b-steve/ascr)
-
-### Launch `ascr` user interface
-
-
-#### From `R`
-
-Once the `ascr` package is installed then the user interface will open in your default browser by running
-
-* `library(ascr)`, then
-
-* `launch.ui()` in `R`.
 
 
 ## The `ascr` user interface
 
 On launching the `ascr` you will be faced with an interactive web page, which will look like the screenshot below.
 
-```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE,eval = !pdf}
+```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 knitr:::include_graphics("ascr_details.png")
 ```
 
-
-\begin{figure}
-```{r, out.width = "100%", echo = FALSE,eval = pdf,echo = FALSE}
-knitr:::include_graphics("ascr_details.png")
-```
-\end{figure}
 
 All controls for the `ascr` user interface are situated in the left-hand sidebar. Content and modeling output is displayed in the main-panel. The layout of the sidebar and the main-panel is designed to lead the user through the required steps in fitting an acoustic spatial capture-recapture model (i.e., data, mask, model). 
 
@@ -99,52 +56,57 @@ It should be noted that certain options in the sidebar will not be available to 
 
 ## Read in and inspect data
 
-Either load your own data or use example data included with the software (as this manual does). The **trap location** file must contain columns named **x**, **y**, and **post** identifying UTM coordinates and identifier of each trap (currently only a single array of traps is supported). The **detections** file must contain columns named **occasion**, **group**, and **post** that correspond to the occasion at which each group was heard by which trap (corresponding to the traps in the **trap location** file). The **detections** file may also contain a column headed **bearing** or **distance** or both. These must refer to the estimated bearing of the call (radians $\in (0,2\pi)$) and the estimated distance to the call (meters). If this is the case then additional parameters are estimated related to these distributions.
+Either load your own data or use example data included with the software. The **trap location** file must contain columns named **x**, **y**, and **post** identifying UTM coordinates and identifier of each trap. If the data contain multiple arrays the file must also contain a column named **array** . The **detections** file must contain columns named **occasion**, **group**, and **post** that correspond to the occasion at which each group was heard by which trap (corresponding to the traps in the **trap location** file). If the data contain multiple arrays the file must also contain a column named **array**  matching those in the **trap location** file. The **detections** file may also contain a column headed **bearing** or **distance** or both. These must refer to the estimated bearing of the call (radians $\in (0,2\pi)$) and the estimated distance to the call (meters). If this is the case then additional parameters are estimated related to these distributions.
 
-```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE, eval = !pdf}
+
+
+
+```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 knitr:::include_graphics("ascr_data.png")
 ```
 
-```{r, out.width = "70%",echo = FALSE, eval = pdf}
-knitr:::include_graphics("ascr_data.png")
-```
 
-```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE, eval = !pdf}
+```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 knitr:::include_graphics("ascr_example.png")
 ```
 
-```{r, out.width = "40%",echo = FALSE, eval = pdf}
-knitr:::include_graphics("ascr_example.png")
-```
+
 
 
 The example data included with the `ascr` package may be used by checking the ***Use example data**. Here use of the `ascr` user interface is demonstrated using example data that contains both **bearing** and **distance** measurements.
 
 On selecting the **Data** tab your data will be displayed. It is important to check that the data is displayed correctly (i.e., imported in correctly from the `.csv` file). If this is not the case the sidebar has certain options that dictate how the `.csv` file format is understood
 
-The **Traps** tab will show the raw data and automatically plot the position of the traps (recall the `ascr` package only currently supports modelling data from a single array). The locations of the traps are understood to be given by the **x** and **y** named columns of your data. In addition the traps should be identified by a column named **post**. 
+The **Traps** tab will show the raw data and automatically plot the position of the traps (recall the `ascr` package only currently supports modelling data from a single array). The locations of the traps are understood to be given by the **x** and **y** named columns of your data. In addition the traps should be identified by a column named **post**. If you have multiple arrays your file must contain a column naed **array** specifying the numbered arrays, which should match those array numbers given in your **detections** data.
 
-```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE,eval = !pdf}
-
-knitr:::include_graphics("ascr_traps.png")
-```
-\begin{figure}
-```{r, out.width = "100%",echo = FALSE,eval = pdf}
+```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 
 knitr:::include_graphics("ascr_traps.png")
 ```
-\end{figure}
 
-The **Detections** tab will show the raw detection information and the constructed capture history matrix (the format `ascr` requires the data). The **detections** data must contain columns named **occasion**, **group**, and **post** that correspond to the occasion at which each group was heard by which trap (corresponding to the traps in the **trap location** data). The **detections** data may also contain a column headed **bearing** (rad) or **distance** (m) or both. These must refer to the estimated bearing of the call (radians $\in (0,2\pi)$) and the estimated distance to the call (meters). If this is the case then additional parameters are estimated related to these distributions.
+The **Detections** tab will show the raw detection information and the constructed capture history matrix (the format `ascr` requires the data). The **detections** data must contain columns named **occasion**, **group**, and **post** that correspond to the occasion at which each group was heard by which trap (corresponding to the traps in the **trap location** data). The **detections** data may also contain a column headed **bearing** (rad) or **distance** (m) or both. These must refer to the estimated bearing of the call (radians $\in (0,2\pi)$) and the estimated distance to the call (meters). If this is the case then additional parameters are estimated related to these distributions. If you have multiple arrays your file must contain a column naed **array** specifying the numbered arrays, which should match those array numbers given in your **traps** data.
 
-```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE,eval = !pdf}
+```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 knitr:::include_graphics("ascr_detections.png")
 ```
-\begin{figure}
-```{r, out.width = "100%",echo = FALSE,eval = pdf}
-knitr:::include_graphics("ascr_detections.png")
+
+
+## Multiple arrays
+
+If your data contain multiple arrays please ansure that both your **traps** and **detections** files contain a column names **array** and that they contain the same numeric identifiers. If this is the case Please ensure you ckeck the **Multiple** box underneath **Single or multi array** buttons in the sidebar as below.
+
+```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
+knitr:::include_graphics("ascr_multi.png")
 ```
-\end{figure}
+
+Once **Multiple** is chosen your data is split according to each **array** identifier. In addition the sidbar will now contain an option to choose an array as below.
+
+```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
+knitr:::include_graphics("ascr_array.png")
+```
+
+The model will be fitted to **all** data from **every** array, however this option will enable you to specify the array to over which to construct a **mask** or to show in the output plots to follow.
+
 ## Constructing the mask
 
 Acoustic spatial capture-recapture (ascr) (thus, of course spatially explicit capture-recapture (SECR)) modelling requires the use of a **mask**. The **mask** is a fine grid of coordinates around the trap locations which is used to provide a set of plausible locations for each detected call. 
@@ -155,24 +117,15 @@ The **buffer** (m) gives the maximum distance between each mask point and the cl
 
 The **spacing** (m) gives the distance between adjacent **mask** points. Thus, the smaller the **spacing** the finer the **mask** resolution and the greater the number of mask points. 
 
-```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE,eval = !pdf}
-knitr:::include_graphics("ascr_buildmask.png")
-```
-
-```{r, out.width = "70%",echo = FALSE,eval = pdf}
+```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 knitr:::include_graphics("ascr_buildmask.png")
 ```
 
 Select the **Mask** tab to visualize the mask and asses if you think the **buffer** zone and **spacing** are appropriate. 
 
-```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE,eval = !pdf}
+```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 knitr:::include_graphics("ascr_mask.png")
 ```
-\begin{figure}
-```{r, out.width = "100%",echo = FALSE,eval = pdf}
-knitr:::include_graphics("ascr_mask.png")
-```
-\end{figure}
 
 ## Model data
 
@@ -191,11 +144,7 @@ Occasionally the you may want to fix a particular parameter, to do so check the 
 Once you are happy with the **mask** and detection function clicking the **Fit model** button will initiate model fitting. 
 
 
-```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE, eval = !pdf}
-knitr:::include_graphics("ascr_model.png")
-```
-
-```{r, out.width = "70%", echo = FALSE, eval = pdf}
+```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 knitr:::include_graphics("ascr_model.png")
 ```
 
@@ -227,49 +176,30 @@ In all cases the model log-Likelihood value and the AIC score will be displayed 
 
 
 
-```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE, eval = !pdf}
+```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 knitr:::include_graphics("model_output.png")
 ```
-\begin{figure}
-```{r, out.width = "100%",echo = FALSE, eval = pdf}
-knitr:::include_graphics("model_output.png")
-```
-\end{figure}
 
 One thing to note is the interactive nature of the **Location estimate** plot. This plot uses the model data to estimated the most probable location a call emanated from. If **bearing** and/or **distance** information is provided then these data are used to estimate the locations of the call. As both **bearing** and **distance** information is included in this example arrow direction and length represent the estimated **bearing** and **distance** of each call. The contours represent the area within which the call is estimated to have originated from.
 
 As well as choosing a call number to display (see above) you may zoom in on areas of the **Location plot** (see below). To do so click and drag your pointer over the area you wish to inspect (center plot) and double-click to obtain a zoomed version (right hand plot). To reset the plot back to its original state use the appropriate button in the sidebar.
 
-```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE, eval = !pdf}
+```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 knitr:::include_graphics("ascr_loczoom.png")
 ```
-\begin{figure}
-```{r, out.width = "100%", echo = FALSE, eval = pdf}
-knitr:::include_graphics("ascr_loczoom.png")
-```
-\end{figure}
 
 ## Other things to note
 
 In addition to saving each of the plots resulting from **mask** construction and modelling a `.html` file may be downloaded, which contains data and model information (see **Model report** in the image). This includes an animation (see screenshot below) of the estimated call locations, the frame rate of which can be chosen (default is one per second). Note that this may take a few minutes and during the download the app will be disabled. 
 
-```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE, eval = !pdf}
-knitr:::include_graphics("ascr_other.png")
-```
-
-```{r, out.width = "70%", echo = FALSE, eval = pdf}
+```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 knitr:::include_graphics("ascr_other.png")
 ```
 
 
-```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE, eval = !pdf}
+```{r, out.width = "100%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 knitr:::include_graphics("ascr_animation.png")
 ```
-\begin{figure}
-```{r, out.width = "100%",echo = FALSE, eval = pdf}
-knitr:::include_graphics("ascr_animation.png")
-```
-\end{figure}
 
 ### Advanced options
 
@@ -279,31 +209,21 @@ Other options of note are revealed upon checking the **Advanced options** check 
 
 * increase the mask buffer size---the range of the mask buffer (m) slider is chosen based on the trap coordinates; however, occasionally the maximum may need to be increased (see below),
 
-```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE, eval = !pdf}
-knitr:::include_graphics("ascr_incmask.png")
-```
-
-```{r, out.width = "70%",echo = FALSE, eval = pdf}
+```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 knitr:::include_graphics("ascr_incmask.png")
 ```
 
 * chose parameter starting values---the `ascr` package will by default chose starting values for the optimization. However, upon occasion the optimizer will fail and a convergence error will be thrown. In this case typically defining more appropriate starting values will solve the convergence problems. Checking this box will allow you to set starting values for the parameters in the model (see below the value of 1 is chosen as a starting value for the parameter $\sigma$). Note---if a parameter is fixed (above) one clearly cannot provide a starting value.
 
-```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE, eval = !pdf}
+```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 knitr:::include_graphics("ascr_sv.png")
 ```
 
-```{r, out.width = "70%",echo = FALSE, eval = pdf}
-knitr:::include_graphics("ascr_sv.png")
-```
 
 * build finer mask for plotting---to obtain smoother contours on the **Location estimate** plots a finer **spacing** (m) may be chosen. This will **only** affect the plotting and not the modelling.
 
 
-```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE, eval = !pdf}
+```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 knitr:::include_graphics("ascr_fine.png")
 ```
 
-```{r, out.width = "70%",echo = FALSE, eval = pdf}
-knitr:::include_graphics("ascr_fine.png")
-```
