@@ -36,7 +36,8 @@ the traps in the **trap location** file). If the data contain multiple
 arrays the file must also contain a column named **array** matching
 those in the **trap location** file. The **detections** file may also
 contain a column headed **bearing** or **distance** or both. These must
-refer to the estimated bearing of the call (radians ∈(0, 2*π*)) and the
+refer to the estimated bearing of the call---ideally in radians ∈(0, 2*π*)
+however there is functionality within the app to transform bearings to radians--- and the
 estimated distance to the call (meters). If this is the case then
 additional parameters are estimated related to these distributions.
 

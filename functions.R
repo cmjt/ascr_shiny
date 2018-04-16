@@ -24,7 +24,7 @@ get.capt.hist <- function(data){
 #' @param traps a matrix of trap locations used to create the \link{mask}
 show.mask <- function(mask = NULL,traps = NULL){
     plot(mask,asp = 1,pch = 20,col = "grey",
-         xlab = "Longitude",ylab = "Latitude")
+         xlab = "x-axis",ylab = "y-axis")
     points(traps,cex = 2,pch = 4,lwd = 3)
 }
 

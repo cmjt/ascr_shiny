@@ -1,144 +1,31 @@
 ---
-title: "Model details"
+title: "Estimated call locations"
 output: html_document
 params:
-  buffer: NA
-  spacing: NA
   fit: NA
   anispeed: = NA
-  dist: NA
-  array: NA
-  multi: NA
 ---
+
 ```{r setup, eval = TRUE, echo = FALSE}
-bear <- FALSE
-distance <- FALSE
-hn <- FALSE
-hr <- FALSE
-th <- FALSE
-if(!is.null(params$fit$args$capt$bearing)){bear <- TRUE}
-if(!is.null(params$fit$args$capt$dist)){distance <- TRUE}
-if(params$fit$args$detfn == "hn"){hn <- TRUE}
-if(params$fit$args$detfn == "hr"){hr <- TRUE}
-if(params$fit$args$detfn == "th"){th <- TRUE}
-session <- ifelse(params$multi == "single", 1, params$array)
-```
 
-### Data and Mask
-
-
-The mask used had a `r params$buffer` meter buffer and spacing of `r params$spacing` meters.
-
-```{r plot mask,eval = TRUE,echo = FALSE}
-if(params$multi == "single"){
-  traps <- params$fit$args$traps[[1]]
-  mask <- params$fit$args$mask[[1]]
-  show.mask(mask,traps)
-}else{
-  traps <- params$fit$args$traps[[params$array]]
-  mask <- params$fit$args$mask[[params$array]]	
-  show.mask(mask,traps)
-  title(paste("array",params$array))
-}
+session <- 1:length(fit$args$capt)
 
 ```
 
 
+```{r animation, eval=TRUE,echo=FALSE,fig.show='animate',message=FALSE,width = 7, height = 7}
 
-### Parameter estimates
-
-
-```{r, echo = FALSE,eval = TRUE,message=FALSE}
-summary(params$fit)
-```
-
-
-
-### Detection surface
-
-```{r plot set.cont,eval=TRUE,echo=FALSE,warning=FALSE,message=FALSE}
-show.detsurf(params$fit,surface  = FALSE,session = session)
-```
-
-```{r plot set.surf,eval=TRUE,echo=FALSE,warning=FALSE,message=FALSE}
-show.detsurf(params$fit,session = session)
-```
-
-
-### Detection function
-
-```{r det hn,eval = hn, results = 'asis',message = FALSE, echo = FALSE}
-cat("$$ g(d) = g0 \\; \\text{exp}( \\frac{-d^2} {2 \\; \\sigma^2 })$$")
-```
-
-```{r det hr,eval = hr, results = 'asis',message = FALSE, echo = FALSE}
-cat("$$ g(d) = g0 \\; ( 1 - \\text{exp}( -\\frac{d}{\\sigma}^{-z} ) )$$")
-```
-
-```{r det th,eval = th, results = 'asis',message = FALSE, echo = FALSE}
-cat("$$g(d) = 0.5 - 0.5 \\; erf( \\frac{d}{\\text{scale}} - \\text{shape})$$")
-```
-
-```{r plot.detfn, eval=TRUE,echo=FALSE}
-show.detfn(params$fit, session = session)
-```
-
-
-
-
-```{r bearing,eval = bear,results='asis',message = FALSE, echo = FALSE}
-cat("### Bearing distribution")
-
-```
-
-```{r plot bear,eval = bear,echo = FALSE}
-kappa = params$fit$coefficients["kappa"]
-if(params$multi == "single"){
-  theta = sort(params$fit$args$capt[[1]]$bearing - pi)
-  show.dvm(theta = theta, kappa = kappa)
-}else{
-  theta = sort(arams$fit$args$capt[[params$array]]$bearing - pi)
-  show.dvm(theta = theta, kappa = kappa)
-  title(paste("array", params$array))
-}
-```
-
-```{r distance,eval = distance,results = 'asis',message = FALSE,echo = FALSE}
-cat(paste("### Distance distribution","\n"))
-
-cat(paste("Distance distribution evaluated at", params$dist, "m"))
-
-```
-
-```{r plot dist,eval = distance,echo = FALSE}
-d <- params$dist
-shape <- paramsfit$coefficients["alpha"]
-if(params$multi == "single"){
-  x <- sort(paramsfit$args$capt[[1]]$dist)
-  show.distgam(x = x, shape = shape, d = d)
-}else{
-  x <- sort(params$fit$args$capt[[params$array]]$dist)
-  show.distgam(x = x, shape = shape, d = d)
-  title(paste("array", params$array))
-}
-```		
-
-
-
-### Estimated call locations
-
-```{r animation, eval=TRUE,echo=FALSE,fig.show='animate',message=FALSE,fig.height=7,fig.width=7}
-if(params$multi == "single"){
-  frames <- nrow(params$fit$args$capt[[1]]$bincapt)
-}else{
-  frames <- nrow(params$fit$args$capt[[params$array]]$bincapt)
-}
-oopt = ani.options(interval = params$anispeed,loop = 1, nmax = frames,ani.width = 600,ani.height = 600)
+for(j in session){
+frames <- nrow(params$fit$args$capt[[j]]$bincapt)
 out <- vector("list", frames)
-for (i in 1:ani.options("nmax")) {
-  locations(params$fit,i,session = session)
+oopt = ani.options(interval = params$anispeed,loop = 1, nmax = frames,
+ani.width = 600,ani.height = 600,single.opts =  "'utf8': false, 'theme': 'dark'")
+ for (i in 1:ani.options("nmax")) {
+  locations(params$fit,i,session = j)
   legend("top",legend = paste("call",i,sep = " "),bty = "n")
   ani.pause()
+}
+
 }
 
 ani.options(oopt)

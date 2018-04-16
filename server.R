@@ -117,6 +117,15 @@ shinyServer(function(input, output,session) {
             }
         }
     })
+    observe({
+        if("array"%in%names(detections()) & "array"%in%names(traps())){
+            updateRadioButtons(session, "trapType", "Single or multi array",
+                               choices = c("Single" = "single",
+                                           "Multiple" = "multi"),
+                               inline = TRUE,selected = "multi")
+            disable("trapType")
+        }
+    })
     
     output$which_array <- renderUI({
         detections <- detections()
@@ -238,10 +247,10 @@ shinyServer(function(input, output,session) {
     output$trapsPlot <- renderPlot({
         traps <- traps()
         if(!is.null(traps$post)){
-            plot(traps$x,traps$y,asp = 1,type = "n",xlab = "Longitude",ylab = "Latitude")
+            plot(traps$x,traps$y,asp = 1,type = "n",xlab = "x-axis",ylab = "y-axis")
             text(traps$x,traps$y,traps$post,lwd = 2)
         }else{
-            plot(traps$x,traps$y,asp = 1,pch = 4,cex = 2,lwd = 3,xlab = "Longitude",ylab = "Latitude")
+            plot(traps$x,traps$y,asp = 1,pch = 4,cex = 2,lwd = 3,xlab = "x-axis",ylab = "y-axis")
         }
     })
     
@@ -515,8 +524,10 @@ shinyServer(function(input, output,session) {
     output$coefs <- renderTable({
         fit <- fit()
         if(class(fit)[1]=="ascr"){
-            res <- data.frame(Estimate = summary(fit)$coefs,Std.Error = summary(fit)$coefs.se)
+            ci <- confint(fit)
+            res <- data.frame(Estimate = summary(fit)$coefs,Std.Error = summary(fit)$coefs.se, "2.5%" = ci[,1], "97.5%" = ci[,2] )
             rownames(res) <- names(coef(fit))
+            colnames(res) <- c("Estimate", "Std.Error", "2.5% Cl", "97.5% Cl")
             return(res)
         }
     },rownames = TRUE)
@@ -524,9 +535,10 @@ shinyServer(function(input, output,session) {
      output$denst <- renderTable({
         fit <- fit()
         if(class(fit)[1]=="ascr"){
-            res <- rbind( fit$coefficients["D"], fit$coefficients["D"]/0.01)
+            res <- rbind( cbind(fit$coefficients["D"],confint(fit)[1,1],confint(fit)[1,2]),
+                         cbind(fit$coefficients["D"]/0.01,confint(fit)[1,1]/0.01,confint(fit)[1,2]/0.01))
             rownames(res) <- c("per hectare",   "per squared km")
-            colnames(res) <- "Call density"
+            colnames(res) <- c("Call density", "2.5% Cl", "97.5% Cl")
             return(res)
         }
     },rownames = TRUE,colnames = TRUE)
@@ -802,8 +814,7 @@ shinyServer(function(input, output,session) {
         }
     )
     output$report <- downloadHandler(
-          
-        filename = "report.html",
+        filename = "animation.zip",
         content = function(file) {
             disable("downloadSurfPlot")
             disable("downloadContPlot")
@@ -816,29 +827,44 @@ shinyServer(function(input, output,session) {
             disable("anispeed")
             disable("report")
             shinyjs::show("proc_report")
-            
+            fit <- fit()
             ## Copy the report file to a temporary directory before processing it, in
             ## case we don't have write permissions to the current working dir (which
             ## can happen when deployed).
+            ##go to a temp dir to avoid permission issues
+            files <- NULL
+            session <- 1:length(fit$args$capt)
+            for(j in session){
+                frames <- nrow(fit$args$capt[[j]]$bincapt)
+                fileName <-tempfile(pattern = "", fileext = ".gif")
+                ani.options(interval = 0.1,loop = 1, nmax = frames,
+                            ani.width = 600,ani.height = 600,single.opts =  "'utf8': false, 'theme': 'dark'")
+                animation::saveGIF({
+                    for (i in 1:frames) {
+                        locations(fit,i,session = j)
+                        legend("top",legend = paste("call",i,sep = " "),bty = "n")
+                        ani.pause()
+                    }
+                }, movie.name = fileName)
+                files <- c(fileName,files)
+            }
+            zip(file,files)
+            unlink(fileName)
+
+            ##                )
+            ## tempReport <- file.path(tempdir(), "report.Rmd")
+            ## file.copy("report.Rmd", tempReport, overwrite = TRUE)
                              
-            tempReport <- file.path(tempdir(), "report.Rmd")
-            file.copy("report.Rmd", tempReport, overwrite = TRUE)
-                             
-            ## Set up parameters to pass to Rmd document
-            params <- list(buffer = input$buffer,
-                           spacing = input$spacing,
-                           fit = fit(),
-                           anispeed = input$anispeed,
-                           dist = input$distD,
-                           array = input$choose_trap,
-                           multi = input$trapType)
-            ## Knit the document, passing in the `params` list, and eval it in a
-            ## child of the global environment (this isolates the code in the document
-            ## from the code in this app).
-            render(tempReport, output_file = file,
-                   params = params,
-                   envir = new.env(parent = globalenv())
-                   )
+            ## ## Set up parameters to pass to Rmd document
+            ## params <- list(fit = fit(),
+            ##                anispeed = input$anispeed)
+            ## ## Knit the document, passing in the `params` list, and eval it in a
+            ## ## child of the global environment (this isolates the code in the document
+            ## ## from the code in this app).
+            ## render(tempReport, output_file = file,
+            ##        params = params,
+            ##        envir = new.env(parent = globalenv())
+            ##        )
             enable("downloadSurfPlot")
             enable("downloadContPlot")
             enable("downloadDetPlot")
