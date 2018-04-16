@@ -11,7 +11,7 @@ for (i in pkgs){
     }
 }
 if(!require("ascr",quietly = TRUE, character.only = TRUE)){
-    devtools::install_github("https://github.com/b-steve/ascr")
+    devtools::install_github("b-steve/ascr")
 }
 runApp(appDir, display.mode = "normal",launch.browser = TRUE)
 
