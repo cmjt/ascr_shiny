@@ -136,7 +136,7 @@ shinyServer(function(input, output,session) {
         arrs <- as.numeric(names(table(traps$array)))
         mn <- min(arrs)
         mx <- max(arrs)
-        numericInput("choose_trap", "Choose trap array (model fitting will use all arrays)",
+        numericInput("choose_trap", "Choose trap array for animation",
                      min = mn, max = mx,
                      value = mn)
     })
@@ -814,7 +814,7 @@ shinyServer(function(input, output,session) {
         }
     )
     output$report <- downloadHandler(
-        filename = "animation.zip",
+        filename = "animation.html",
         content = function(file) {
             disable("downloadSurfPlot")
             disable("downloadContPlot")
@@ -828,43 +828,24 @@ shinyServer(function(input, output,session) {
             disable("report")
             shinyjs::show("proc_report")
             fit <- fit()
+            array <- ifelse(!is.null(input$choose_trap), input$choose_trap, 1)
             ## Copy the report file to a temporary directory before processing it, in
             ## case we don't have write permissions to the current working dir (which
             ## can happen when deployed).
-            ##go to a temp dir to avoid permission issues
-            files <- NULL
-            session <- 1:length(fit$args$capt)
-            for(j in session){
-                frames <- nrow(fit$args$capt[[j]]$bincapt)
-                fileName <-tempfile(pattern = "", fileext = ".gif")
-                ani.options(interval = 0.1,loop = 1, nmax = frames,
-                            ani.width = 600,ani.height = 600,single.opts =  "'utf8': false, 'theme': 'dark'")
-                animation::saveGIF({
-                    for (i in 1:frames) {
-                        locations(fit,i,session = j)
-                        legend("top",legend = paste("call",i,sep = " "),bty = "n")
-                        ani.pause()
-                    }
-                }, movie.name = fileName)
-                files <- c(fileName,files)
-            }
-            zip(file,files)
-            unlink(fileName)
-
-            ##                )
-            ## tempReport <- file.path(tempdir(), "report.Rmd")
-            ## file.copy("report.Rmd", tempReport, overwrite = TRUE)
-                             
-            ## ## Set up parameters to pass to Rmd document
-            ## params <- list(fit = fit(),
-            ##                anispeed = input$anispeed)
-            ## ## Knit the document, passing in the `params` list, and eval it in a
-            ## ## child of the global environment (this isolates the code in the document
-            ## ## from the code in this app).
-            ## render(tempReport, output_file = file,
-            ##        params = params,
-            ##        envir = new.env(parent = globalenv())
-            ##        )
+            ## go to a temp dir to avoid permission issues
+            tempReport <- file.path(tempdir(), "report.Rmd")
+            file.copy("report.Rmd", tempReport, overwrite = TRUE)
+            ## Set up parameters to pass to Rmd document
+            params <- list(fit = fit(),
+                           anispeed = input$anispeed,
+                           array = array)
+            ## Knit the document, passing in the `params` list, and eval it in a
+            ## child of the global environment (this isolates the code in the document
+            ## from the code in this app).
+            render(tempReport, output_file = file,
+                   params = params,
+                   envir = new.env(parent = globalenv())
+                   )
             enable("downloadSurfPlot")
             enable("downloadContPlot")
             enable("downloadDetPlot")
