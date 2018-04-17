@@ -111,6 +111,7 @@ shinyUI(fluidPage(
             actionButton("fit", "Fit model",icon("cogs")),
             hidden(p(id = "processing", "Processing...")),
             hr(),
+            uiOutput("which_array"),
             downloadButton('downloadSurfPlot', 'Detection surface'),
             downloadButton('downloadContPlot', 'Detection contour'),
             downloadButton('downloadDetPlot', 'Detection function'),
@@ -125,7 +126,6 @@ shinyUI(fluidPage(
             downloadButton('downloaddistancePlot', 'Distance distribution (m)'),
             ## Other stuff
             h3(icon("ellipsis-h"),tags$b("Other")),
-            uiOutput("which_array"),
             numericInput("anispeed","Animation frame rate for report (s)",
                          min = 0.1,max = 5,step = 0.1,
                          value = 1),
@@ -155,13 +155,13 @@ shinyUI(fluidPage(
                 conditionalPanel(
                     condition = "input.advancedOptions.includes('inc')",
                     numericInput("incmaskbuffer","Chose higher bound for the mask buffer",
-                                 min = 1, max = 10000000,step = 1,
+                                 min = 1, max = 10000000,step = 0.1,
                                  value = 1000)
                 ),
                 conditionalPanel(
                     condition = "input.advancedOptions.includes('fine')",
                     numericInput("plotmaskspacing","Chose mask spacing (plotting purposes only)",
-                                 min = 1, max = 10000000,step = 1,
+                                 min = 0.1, max = 10000000,step = 0.1,
                                  value = 250)
                 ),
                 downloadButton('downloadModel', 'Save model .RData file')

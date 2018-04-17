@@ -136,7 +136,7 @@ shinyServer(function(input, output,session) {
         arrs <- as.numeric(names(table(traps$array)))
         mn <- min(arrs)
         mx <- max(arrs)
-        numericInput("choose_trap", "Choose trap array for animation",
+        numericInput("choose_trap", "Choose trap array for output plots",
                      min = mn, max = mx,
                      value = mn)
     })
@@ -310,13 +310,22 @@ shinyServer(function(input, output,session) {
     ## chage buffer slider based on trap range
     ## chage spacing slider based on trap range
     observe({
-        infile <- traps() ## user input file upload
-        if(!is.null(infile)) {
+        if(!is.null(traps())) {
             traps <- traps()
-            maxdistance <- diff(range(traps$x,traps$y))/4
-            updateSliderInput(session, "spacing", max = maxdistance, value = maxdistance/2)
-            maxdistance <- 4*diff(range(traps$x,traps$y))
-            updateSliderInput(session, "buffer", max = maxdistance,value = maxdistance/2) 
+            if(input$trapType == "single"){
+                maxdistance <- diff(range(traps$x,traps$y))/4
+                updateSliderInput(session, "spacing", max = maxdistance, value = maxdistance/2)
+                maxdistance <- 4*diff(range(traps$x,traps$y))
+                updateSliderInput(session, "buffer", max = maxdistance,value = maxdistance/2) 
+            }else{
+                validate(need("array"%in%names(detections),""))
+                validate(need("array"%in%names(traps),""))
+                traps <- split(traps, traps$array)
+                maxdistance <- diff(range(traps[[1]]$x,traps[[1]]$y))/4
+                updateSliderInput(session, "spacing", max = maxdistance, value = maxdistance/2)
+                maxdistance <- 4*diff(range(traps[[1]]$x,traps[[1]]$y))
+                updateSliderInput(session, "buffer", max = maxdistance,value = maxdistance/2) 
+            }   
         }
     })
     ## show all plot for raw data
