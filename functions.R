@@ -23,9 +23,12 @@ get.capt.hist <- function(data){
 #' @param mask mask object from \code{create.mask}
 #' @param traps a matrix of trap locations used to create the \link{mask}
 show.mask <- function(mask = NULL,traps = NULL){
-    plot(mask,asp = 1,pch = 20,col = "grey",
-         xlab = "x-axis",ylab = "y-axis")
-    points(traps,cex = 2,pch = 4,lwd = 3)
+    df <- data.frame(x = mask[,1], y = mask[,2])
+    tb <- data.frame(x = traps$x, y = traps$y)
+    g <- ggplot(df,aes(x, y)) + 
+        geom_point(col = "grey") + xlab("x-axis") + ylab("y-axis") +
+        theme(panel.background = element_blank(),panel.border = element_rect(colour = "black", fill=NA, size=1))
+    g +  geom_point(data = tb,aes(x = tb$x,y = tb$y), col = "red", size = 3)
 }
 
 #' Function to plot Von Mises distribution of bearing measurement error

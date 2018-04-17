@@ -126,7 +126,21 @@ shinyServer(function(input, output,session) {
             disable("trapType")
         }
     })
-    
+    ## which array raw
+    output$which_array_raw<- renderUI({
+        detections <- detections()
+        traps <- traps()
+        validate(need("array"%in%names(detections),""))
+        validate(need("array"%in%names(traps),""))
+        validate(need(input$trapType == "multi",""))
+        arrs <- as.numeric(names(table(traps$array)))
+        mn <- min(arrs)
+        mx <- max(arrs)
+        numericInput("choose_trap_raw", "Choose trap array for plot",
+                     min = mn, max = mx,
+                     value = mn)
+    })
+    ## which array output plots
     output$which_array <- renderUI({
         detections <- detections()
         traps <- traps()
@@ -340,10 +354,10 @@ shinyServer(function(input, output,session) {
         }else{
             traps <- split(traps, traps$array)
             validate(need(input$show.call.num,"Please provide a call number"))
-            validate(need(input$show.call.num <= nrow(capt.hist[[input$choose_trap]]$bincapt),
+            validate(need(input$show.call.num <= nrow(capt.hist[[input$choose_trap_raw]]$bincapt),
                           "Please provide a valid call number"))
-            show.data(traps[[input$choose_trap]], capt.hist[[input$choose_trap]],id = input$show.call.num)
-            legend("top",legend = paste("array", input$choose_trap, " call",input$show.call.num,sep = " "),bty = "n")
+            show.data(traps[[input$choose_trap_raw]], capt.hist[[input$choose_trap_raw]],id = input$show.call.num)
+            legend("top",legend = paste("array", input$choose_trap_raw, " call",input$show.call.num,sep = " "),bty = "n")
         }
     })
     ## change buffer sliding in advanced increase buffer option chosen
@@ -372,15 +386,15 @@ shinyServer(function(input, output,session) {
         traps <- traps()
         mask <- mask()
         if(input$trapType == "single"){
-            traps <- as.matrix(cbind(traps$x,traps$y))
             show.mask(mask,traps)
         }else{
             traps <- split(traps, traps$array)
-            traps <- lapply(traps,function(x) cbind(x$x,x$y))
-            show.mask(mask[[input$choose_trap]],traps[[input$choose_trap]])
+            m.lst <- list()
+            for(i in 1:length(traps)){ m.lst[[i]] <- show.mask(mask[[i]], traps = traps[[i]])}
+            do.call(grid.arrange, m.lst)
             }
         
-    },width = 500, height = 500)
+    })
     ## print out mask buffet info
     output$maskinfo <- renderText({
         paste("This mask is assuming that a distance of ",input$buffer, "meters is the maximum distance at which a detection is feasibly possible")
@@ -711,13 +725,13 @@ shinyServer(function(input, output,session) {
           traps <- traps()
           mask <- mask()
           if(input$trapType == "single"){
-              traps <- as.matrix(cbind(traps$x,traps$y))
-            show.mask(mask,traps)
+              show.mask(mask,traps)
           }else{
-            traps <- split(traps, traps$array)
-            traps <- lapply(traps,function(x) cbind(x$x,x$y))
-            show.mask(mask[[input$choose_trap]],traps[[input$choose_trap]])
-        }
+              traps <- split(traps, traps$array)
+              m.lst <- list()
+              for(i in 1:length(traps)){ m.lst[[i]] <- show.mask(mask[[i]], traps = traps[[i]])}
+              do.call(grid.arrange, m.lst)
+          }
           dev.off()
       })
     output$downloadSurfPlot <- downloadHandler(

@@ -4,6 +4,8 @@ library(shinycssloaders)
 library(shinythemes)
 library(animation)
 library(ascr)
+library(ggplot2)
+library(gridExtra)
 source("functions.R")
 
 
@@ -79,7 +81,7 @@ shinyUI(fluidPage(
                         value = 1000),
             ## Input: integer of mask spacing in meters (this is updated based on trap info when file is loaded)
             sliderInput("spacing", "Choose mask spacing (m):",
-                        min = 1, max = 1000,
+                        min = 0.1, max = 1000,step = 0.1,
                         value = 250),
             downloadButton('downloadMask', 'Mask plot'),
             ## horizontal lines before model options,
@@ -199,6 +201,7 @@ shinyUI(fluidPage(
                                                          tableOutput("capt.hist")))),
                                      tabPanel(h5(icon("map-signs"),tags$b("Traps & detections")),
                                               column(width = 12, align = "center",
+                                                     uiOutput("which_array_raw"),
                                                      plotOutput( height = "700px",width = "700px","show")))
                                  )),
                         tabPanel(h4(icon("puzzle-piece"), tags$b("Mask")),
@@ -207,7 +210,9 @@ shinyUI(fluidPage(
                                             textOutput("maskinfo")
                                          )),
                                      column(width = 12, align="center",
-                                            withSpinner(plotOutput("maskPlot"),type = 5,color = "#D3D3D3"))
+                                            withSpinner(
+                                                plotOutput(height = "800px",width = "800px","maskPlot"),
+                                                type = 5,color = "#D3D3D3"))
                                 ),
                         tabPanel(h4(icon("cogs"), tags$b("Model")),
                                  tabsetPanel(
