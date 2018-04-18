@@ -71,9 +71,6 @@ shinyUI(fluidPage(
                          choices = c("Degrees" = "bd",
                                      "Radians" = "rad"),
                          selected = "rad",inline = TRUE),
-            numericInput("show.call.num", "Choose call number to display in data plot:",
-                         min = 1, max = 1000,step = 1,
-                         value = 1),
             h3(icon("puzzle-piece"),tags$b("Build mask")),
             ## Input: integer of mask buffer in meters (this is updated based on trap info when file is loaded)
             sliderInput("buffer", "Choose mask buffer (m):",
@@ -202,6 +199,9 @@ shinyUI(fluidPage(
                                      tabPanel(h5(icon("map-signs"),tags$b("Traps & detections")),
                                               column(width = 12, align = "center",
                                                      uiOutput("which_array_raw"),
+                                                     numericInput("show.call.num", "Choose call number to display in data plot:",
+                                                                  min = 1, max = 1000,step = 1,
+                                                                  value = 1),
                                                      plotOutput( height = "700px",width = "700px","show")))
                                  )),
                         tabPanel(h4(icon("puzzle-piece"), tags$b("Mask")),

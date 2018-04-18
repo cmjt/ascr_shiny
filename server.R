@@ -127,7 +127,7 @@ shinyServer(function(input, output,session) {
         }
     })
     ## which array raw
-    output$which_array_raw<- renderUI({
+    output$which_array_raw <- renderUI({
         detections <- detections()
         traps <- traps()
         validate(need("array"%in%names(detections),""))
@@ -386,7 +386,7 @@ shinyServer(function(input, output,session) {
         traps <- traps()
         mask <- mask()
         if(input$trapType == "single"){
-            show.mask(mask,traps)
+            grid.arrange(show.mask(mask,traps))
         }else{
             traps <- split(traps, traps$array)
             m.lst <- list()
@@ -737,13 +737,15 @@ shinyServer(function(input, output,session) {
     output$downloadSurfPlot <- downloadHandler(
         filename = "ascr_detection_surface_plot.png",
         content = function(file) {
-            
             png(file)
             fit <- fit()
-            if(class(fit)[1]=="ascr"){
-                show.detsurf(fit)
+            if(class(fit)[1] == "ascr"){
+                par(mfrow = c(1,2))
+                show.detsurf(fit,session = input$choose_trap)
+                show.detsurf(fit,,session = input$choose_trap, surface = TRUE)    
             }else{
-                NULL
+                plot(1,1,col="white",axes = FALSE,xlab = "",ylab = "")
+                text(1,1,paste("convergence issues try advanced options"),col = "grey")
             }
             dev.off()
         })
@@ -752,10 +754,13 @@ shinyServer(function(input, output,session) {
         content = function(file) {
             png(file)
             fit <- fit()
-            if(class(fit)[1]=="ascr"){
-                show.detsurf(fit,surface = FALSE)
+            if(class(fit)[1] == "ascr"){
+                par(mfrow = c(1,2))
+                show.detsurf(fit,session = input$choose_trap)
+                show.detsurf(fit,,session = input$choose_trap, surface = FALSE)    
             }else{
-                NULL
+                plot(1,1,col="white",axes = FALSE,xlab = "",ylab = "")
+                text(1,1,paste("convergence issues try advanced options"),col = "grey")
             }
             dev.off()
         })
@@ -790,8 +795,9 @@ shinyServer(function(input, output,session) {
     output$downloadbearingPlot <- downloadHandler(
         filename = "ascr_bearing_distribution_plot.png",
         content = function(file) {
-            png(file)
             fit <- fit()
+            validate(need(!is.null(fit$args$capt[[1]]$bearing),"No bearing data provided"))
+            png(file) 
             if(class(fit)[1]=="ascr"){ 
                 kappa = fit$coefficients["kappa"]
                 if(input$trapType == "single"){
@@ -810,8 +816,9 @@ shinyServer(function(input, output,session) {
     output$downloaddistancePlot <- downloadHandler(
         filename = "ascr_distance_distribution_plot.png",
         content = function(file) {
-            png(file)
             fit <- fit()
+            validate(need(!is.null(fit$args$capt[[1]]$dist),"No distance data provided"))
+            png(file)
             if(class(fit)[1]=="ascr"){
                 d <- input$distD
                 shape <- fit$coefficients["alpha"]
