@@ -117,15 +117,7 @@ shinyServer(function(input, output,session) {
             }
         }
     })
-    observe({
-        if("array"%in%names(detections()) & "array"%in%names(traps())){
-            updateRadioButtons(session, "trapType", "Single or multi array",
-                               choices = c("Single" = "single",
-                                           "Multiple" = "multi"),
-                               inline = TRUE,selected = "multi")
-            disable("trapType")
-        }
-    })
+    
     ## which array raw
     output$which_array_raw <- renderUI({
         detections <- detections()
@@ -137,6 +129,29 @@ shinyServer(function(input, output,session) {
         mn <- min(arrs)
         mx <- max(arrs)
         numericInput("choose_trap_raw", "Choose trap array for plot",
+                     min = mn, max = mx,
+                     value = mn)
+    })
+    observe({
+        if("array"%in%names(detections()) & "array"%in%names(traps())){
+            updateRadioButtons(session, "trapType", "Single or multi array",
+                               choices = c("Single" = "single",
+                                           "Multiple" = "multi"),
+                               inline = TRUE,selected = "multi")
+            disable("trapType")
+        }
+    })
+    ## which array capt
+    output$which_array_capt <- renderUI({
+        detections <- detections()
+        traps <- traps()
+        validate(need("array"%in%names(detections),""))
+        validate(need("array"%in%names(traps),""))
+        validate(need(input$trapType == "multi",""))
+        arrs <- as.numeric(names(table(traps$array)))
+        mn <- min(arrs)
+        mx <- max(arrs)
+        numericInput("choose_trap_capt", "Choose trap array for capture history matrix",
                      min = mn, max = mx,
                      value = mn)
     })
@@ -312,10 +327,10 @@ shinyServer(function(input, output,session) {
             if(input$trapType == "multi"){
                 if(input$disp == "head") {
                     validate(need(input$choose_trap <= max(as.numeric(names(table(traps$array)))),"Please provide valid array"))
-                    return(head(capthist[[input$choose_trap]][[1]]))
+                    return(head(capthist[[input$choose_trap_capt]][[1]]))
                 }else{
                     validate(need(input$choose_trap <= max(as.numeric(names(table(traps$array)))),"Please provide valid array"))
-                    return(capthist[[input$choose_trap]][[1]])
+                    return(capthist[[input$choose_trap_capt]][[1]])
                 }  
                 
             }
