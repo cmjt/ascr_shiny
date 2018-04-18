@@ -13,4 +13,4 @@ Details on using the `ascr` shiny application can be found [here](https://cmjt.g
 
 ## Example data
 
-There are three example data sets included alongside this application two are example data from the [`ascr`](https://github.com/b-steve/ascr) package, the thrid is northern yellow-cheeked gibbon *Nomascus annamensis* data from *Kidney, D., Rawson, B. M., Borchers, D. L., Stevenson, B. C., Marques, T. A., & Thomas, L. (2016). An efficient acoustic density estimation method with human detectors applied to gibbons in Cambodia. PloS one, 11(5), e0155066.*
+There are two example data sets included alongside this application the first is  single array example data from the [`ascr`](https://github.com/b-steve/ascr) package, the second is multi array and is a subset of northern yellow-cheeked gibbon *Nomascus annamensis* data from *Kidney, D., Rawson, B. M., Borchers, D. L., Stevenson, B. C., Marques, T. A., & Thomas, L. (2016). An efficient acoustic density estimation method with human detectors applied to gibbons in Cambodia. PloS one, 11(5), e0155066.*
