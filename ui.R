@@ -36,10 +36,18 @@ shinyUI(fluidPage(
                       accept = c("text/csv",
                                  "text/comma-separated-values,text/plain",
                                  ".csv")),  ## Input: Select a csv file of detection locations
-            radioButtons("trapType", "Single or multi array",
-                         choices = c("Single" = "single",
-                                     "Multiple" = "multi"),
-                         inline = TRUE,selected = "single"),
+            conditionalPanel(condition = 'input.example == true',
+                             radioButtons("trapType_ex", "Single or multi array",
+                                          choices = c("Single" = "single",
+                                                      "Multiple (N.annamensis data)" = "multi"),
+                                          inline = TRUE,selected = "single")
+                             ),
+            conditionalPanel(condition = 'input.example == false',
+                             radioButtons("trapType_us", "Single or multi array",
+                                          choices = c("Single" = "single",
+                                                      "Multiple" = "multi"),
+                                          inline = TRUE,selected = "single")
+                             ),
             radioButtons("which_example", "Chose example data to load",
                          choices = c( "Simple" = "simple",
                                      "With bearings (rad)" = "bearings",

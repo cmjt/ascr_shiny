@@ -13,15 +13,17 @@ withConsoleRedirect <- function(containerId, expr) {
 }
 
 shinyServer(function(input, output,session) {
+    ## initiate trap type
+    trapType <- "single"
     ## read in input data
      traps <- reactive({
          if(input$example == TRUE){
-             if(input$trapType == "single"){
+             if(input$trapType_ex== "single"){
                  load("shiny_example_traps.RData")
                  traps <- shiny_example_traps
                  traps
              }else{
-                 if(input$trapType == "multi"){
+                 if(input$trapType_ex== "multi"){
                      load("shiny_multi_traps.RData")
                      traps <- shiny_multi_traps
                      traps
@@ -43,42 +45,42 @@ shinyServer(function(input, output,session) {
          } 
      })
     detections <- reactive({
-        if("simple" %in% input$which_example & input$example == TRUE & input$trapType == "single"){
+        if("simple" %in% input$which_example & input$example == TRUE & input$trapType_ex== "single"){
             load("shiny_example_detections.RData")
             detections <- shiny_example_detections[,1:3]
             disable("bearing_range")
             hide("bearing_range")
             return(detections)
         }else{
-            if("bearings" %in% input$which_example & input$example == TRUE & input$trapType == "single"){
+            if("bearings" %in% input$which_example & input$example == TRUE & input$trapType_ex== "single"){
                 load("shiny_example_detections.RData")
                 detections <- shiny_example_detections[,1:4]
                 enable("bearing_range")
                 shinyjs::show("bearing_range")
                 return(detections)
             }else{
-                if("distance" %in% input$which_example & input$example == TRUE & input$trapType == "single"){
+                if("distance" %in% input$which_example & input$example == TRUE & input$trapType_ex == "single"){
                     load("shiny_example_detections.RData")
                     detections <- shiny_example_detections[,-4]
                     disable("bearing_range")
                     hide("bearing_range")
                     return(detections)
                 }else{
-                    if("bd" %in% input$which_example & input$example == TRUE & input$trapType == "single"){
+                    if("bd" %in% input$which_example & input$example == TRUE & input$trapType_ex == "single"){
                         load("shiny_example_detections.RData")
                         detections <- shiny_example_detections
                         enable("bearing_range")
                         shinyjs::show("bearing_range")
                         return(detections)
                     }else{
-                        if("simple" %in% input$which_example_multi& input$example == TRUE & input$trapType == "multi"){
+                        if("simple" %in% input$which_example_multi& input$example == TRUE & input$trapType_ex== "multi"){
                             load("shiny_multi_detections.RData")
                             detections <- shiny_multi_detections[,1:4]
                             disable("bearing_range")
                             hide("bearing_range")
                             return(detections)
                         }else{
-                            if("bearings" %in% input$which_example_multi & input$example == TRUE & input$trapType == "multi"){
+                            if("bearings" %in% input$which_example_multi & input$example == TRUE & input$trapType_ex== "multi"){
                                 load("shiny_multi_detections.RData")
                                 detections <- shiny_multi_detections[,1:5]
                                 enable("bearing_range")
@@ -117,14 +119,25 @@ shinyServer(function(input, output,session) {
             }
         }
     })
-    
+    ## single/multi variable
+    trapType <- reactive({
+        if("array"%in%names(detections()) & "array"%in%names(traps()) & input$trapType_ex == "multi"){
+            trapType <- "multi"
+        }else{
+            if( "array"%in%names(detections()) & "array"%in%names(traps()) & input$trapType_us == "multi"){
+                trapType <- "multi"
+            }else{
+                trapType <- "single"
+            }
+        }
+    })
     ## which array raw
     output$which_array_raw <- renderUI({
         detections <- detections()
         traps <- traps()
         validate(need("array"%in%names(detections),""))
         validate(need("array"%in%names(traps),""))
-        validate(need(input$trapType == "multi",""))
+        validate(need(trapType() == "multi",""))
         arrs <- as.numeric(names(table(traps$array)))
         mn <- min(arrs)
         mx <- max(arrs)
@@ -132,22 +145,14 @@ shinyServer(function(input, output,session) {
                      min = mn, max = mx,
                      value = mn)
     })
-    observe({
-        if("array"%in%names(detections()) & "array"%in%names(traps())){
-            updateRadioButtons(session, "trapType", "Single or multi array",
-                               choices = c("Single" = "single",
-                                           "Multiple" = "multi"),
-                               inline = TRUE,selected = "multi")
-            disable("trapType")
-        }
-    })
+    
     ## which array capt
     output$which_array_capt <- renderUI({
         detections <- detections()
         traps <- traps()
         validate(need("array"%in%names(detections),""))
         validate(need("array"%in%names(traps),""))
-        validate(need(input$trapType == "multi",""))
+        validate(need(trapType() == "multi",""))
         arrs <- as.numeric(names(table(traps$array)))
         mn <- min(arrs)
         mx <- max(arrs)
@@ -161,7 +166,7 @@ shinyServer(function(input, output,session) {
         traps <- traps()
         validate(need("array"%in%names(detections),""))
         validate(need("array"%in%names(traps),""))
-        validate(need(input$trapType == "multi",""))
+        validate(need(trapType() == "multi",""))
         arrs <- as.numeric(names(table(traps$array)))
         mn <- min(arrs)
         mx <- max(arrs)
@@ -198,13 +203,13 @@ shinyServer(function(input, output,session) {
             disable("which_example")
             shinyjs::hide("which_example")
         }
-        if(input$trapType == "single" & input$example == TRUE){
+        if(trapType() == "single" & input$example == TRUE){
             enable("which_example")
             shinyjs::show("which_example")
             disable("which_example_multi")
             shinyjs::hide("which_example_multi")
         }
-        if(input$trapType == "multi" & input$example == TRUE){
+        if(trapType() == "multi" & input$example == TRUE){
             disable("which_example")
             shinyjs::hide("which_example")
             enable("which_example_multi")
@@ -295,7 +300,7 @@ shinyServer(function(input, output,session) {
 
     capthist <- reactive({
         validate(need(!is.null(detections()),""))
-        if(input$trapType == "multi"){
+        if(trapType() == "multi"){
             detections <- detections()
             detections <- split(detections, detections$array)
             capt.hist <- lapply(detections, get.capt.hist)
@@ -317,14 +322,14 @@ shinyServer(function(input, output,session) {
         capthist <- capthist()
         traps <- traps()
         validate(need(!is.null(capthist),""))
-        if(input$trapType == "single"){
+        if(trapType() == "single"){
             if(input$disp == "head") {
                 return(head(capthist[[1]]))
             }else{
                 return(capthist[[1]])
             }   
         }else{
-            if(input$trapType == "multi"){
+            if(trapType() == "multi"){
                 if(input$disp == "head") {
                     validate(need(input$choose_trap <= max(as.numeric(names(table(traps$array)))),"Please provide valid array"))
                     return(head(capthist[[input$choose_trap_capt]][[1]]))
@@ -341,7 +346,10 @@ shinyServer(function(input, output,session) {
     observe({
         if(!is.null(traps())) {
             traps <- traps()
-            if(input$trapType == "single"){
+            detections <- detections()
+            print(trapType())
+            print(traps)
+            if(trapType() == "single"){
                 maxdistance <- diff(range(traps$x,traps$y))/4
                 updateSliderInput(session, "spacing", max = maxdistance, value = maxdistance/2)
                 maxdistance <- 4*diff(range(traps$x,traps$y))
@@ -361,7 +369,7 @@ shinyServer(function(input, output,session) {
     output$show <- renderPlot({
         traps <- traps()
         capt.hist <- capthist()
-        if(input$trapType == "single"){
+        if(trapType() == "single"){
             validate(need(input$show.call.num,"Please provide a call number"))
             validate(need(input$show.call.num <= nrow(capt.hist$bincapt),"Please provide a valid call number"))
             show.data(traps, capt.hist,id = input$show.call.num)
@@ -387,7 +395,7 @@ shinyServer(function(input, output,session) {
         traps <- traps()
         validate(need(input$buffer > input$spacing,"The mask buffer cannot be less than the spacing"))
         validate(need(input$buffer/input$spacing < 80, "Infeasibly fine mask"))
-        if(input$trapType == "single"){
+        if(trapType() == "single"){
             traps <- as.matrix(cbind(traps$x,traps$y))
             mask <- create.mask(traps,input$buffer,input$spacing)
         }else{
@@ -400,7 +408,7 @@ shinyServer(function(input, output,session) {
     output$maskPlot <- renderPlot({
         traps <- traps()
         mask <- mask()
-        if(input$trapType == "single"){
+        if(trapType() == "single"){
             grid.arrange(show.mask(mask,traps))
         }else{
             traps <- split(traps, traps$array)
@@ -504,7 +512,7 @@ shinyServer(function(input, output,session) {
             }
         }
         
-        if(input$trapType == "single"){
+        if(trapType() == "single"){
             traps <- as.matrix(cbind(traps$x,traps$y)) 
         }else{
             traps <- split(traps, traps$array)
@@ -641,7 +649,7 @@ shinyServer(function(input, output,session) {
     output$locs <- renderPlot({
         fit <- fit()
         mask <- mask()
-        if(input$trapType == "single"){
+        if(trapType() == "single"){
             msk <- mask()
         }else{
             msk <- mask[[input$choose_trap]]
@@ -675,7 +683,7 @@ shinyServer(function(input, output,session) {
                                       "The mask buffer cannot be less than the (plotting) mask spacing"))
                         validate(need(input$plotmaskspacing < input$spacing,
                                       "To obtain a smooth plot the (plotting) mask spacing should be finer than the model fit mask ")) 
-                        if(input$trapType == "single"){
+                        if(trapType() == "single"){
                             locations(fit,input$call.num,mask = msk,xlim = ranges$x, ylim = ranges$y)
                         }else{
                             locations(fit,session = input$choose_trap,input$call.num,mask = msk,xlim = ranges$x, ylim = ranges$y)
@@ -683,7 +691,7 @@ shinyServer(function(input, output,session) {
                         
                         legend("top",legend = paste("call",input$call.num,sep = " "),bty = "n")
                     }else{
-                        if(input$trapType == "single"){
+                        if(trapType() == "single"){
                             locations(fit, input$call.num)
                         }else{
                             locations(fit,session = input$choose_trap, input$call.num)
@@ -706,7 +714,7 @@ shinyServer(function(input, output,session) {
         fit <- fit()
         validate(need(!is.null(fit$args$capt[[1]]$bearing),"No bearing data provided"))
         kappa = fit$coefficients["kappa"]
-        if(input$trapType == "single"){
+        if(trapType() == "single"){
             theta = sort(fit$args$capt[[1]]$bearing - pi)
             show.dvm(theta = theta, kappa = kappa)
         }else{
@@ -723,7 +731,7 @@ shinyServer(function(input, output,session) {
         validate(need(input$distD < max(fit$args$capt[[1]]$dist),"Distance cannot be greater than those observed"))
         d <- input$distD
         shape <- fit$coefficients["alpha"]
-        if(input$trapType == "single"){
+        if(trapType() == "single"){
             x <- sort(fit$args$capt[[1]]$dist)
             show.distgam(x = x, shape = shape, d = d)
         }else{
@@ -739,7 +747,7 @@ shinyServer(function(input, output,session) {
           png(file)
           traps <- traps()
           mask <- mask()
-          if(input$trapType == "single"){
+          if(trapType() == "single"){
               show.mask(mask,traps)
           }else{
               traps <- split(traps, traps$array)
@@ -815,7 +823,7 @@ shinyServer(function(input, output,session) {
             png(file) 
             if(class(fit)[1]=="ascr"){ 
                 kappa = fit$coefficients["kappa"]
-                if(input$trapType == "single"){
+                if(trapType() == "single"){
                     theta = sort(fit$args$capt[[1]]$bearing - pi)
                     show.dvm(theta = theta, kappa = kappa)
                 }else{
@@ -837,7 +845,7 @@ shinyServer(function(input, output,session) {
             if(class(fit)[1]=="ascr"){
                 d <- input$distD
                 shape <- fit$coefficients["alpha"]
-                if(input$trapType == "single"){
+                if(trapType() == "single"){
                     x <- sort(fit$args$capt[[1]]$dist)
                     show.distgam(x = x, shape = shape, d = d)
                 }else{
