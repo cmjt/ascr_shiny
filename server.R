@@ -175,6 +175,9 @@ shinyServer(function(input, output,session) {
                      value = mn)
     })
     ## Clunky way of enabling/disabling buttons
+    ## observeEvent(!input$msk,{
+    ##     disable("fit")
+    ## })
     observe({
         if(input$example == TRUE){
             disable("file1")
@@ -215,32 +218,33 @@ shinyServer(function(input, output,session) {
             enable("which_example_multi")
             shinyjs::show("which_example_multi")
         }
-        ## code to produce downloadable objects (i.e., plots and report)
-        ## initislly disable some options if no model fitted
-        observeEvent(!input$fit,{
-            disable("downloadSurfPlot")
-            disable("downloadContPlot")
-            disable("downloadDetPlot")
-            disable("call.num")
-            disable("reset_locplot")
-            disable("distD")
-            disable("downloadbearingPlot")
-            disable("downloaddistancePlot")
-            disable("anispeed")
-            disable("report")
-        })
-        observeEvent(input$fit,{
-            enable("downloadSurfPlot")
-            enable("downloadContPlot")
-            enable("downloadDetPlot")
-            enable("call.num")
-            enable("reset_locplot")
-            enable("distD")
-            enable("downloadbearingPlot")
-            enable("downloaddistancePlot")
-            enable("anispeed")
-            enable("report")
-        })
+    ##     ## initislly disable some options if no model fitted
+    ##     observeEvent(!input$fit,{
+    ##         disable("downloadMask")
+    ##         disable("downloadSurfPlot")
+    ##         disable("downloadContPlot")
+    ##         disable("downloadDetPlot")
+    ##         disable("call.num")
+    ##         disable("reset_locplot")
+    ##         disable("distD")
+    ##         disable("downloadbearingPlot")
+    ##         disable("downloaddistancePlot")
+    ##         disable("anispeed")
+    ##         disable("report")
+    ##     })
+    ##     observeEvent(input$fit,{
+    ##         enable("downloadMask")
+    ##         enable("downloadSurfPlot")
+    ##         enable("downloadContPlot")
+    ##         enable("downloadDetPlot")
+    ##         enable("call.num")
+    ##         enable("reset_locplot")
+    ##         enable("distD")
+    ##         enable("downloadbearingPlot")
+    ##         enable("downloaddistancePlot")
+    ##         enable("anispeed")
+    ##         enable("report")
+    ##     })
         
         if(input$example == FALSE | isTruthy(input$file1) == FALSE){
             disable("downloadMask")
@@ -310,6 +314,7 @@ shinyServer(function(input, output,session) {
                                                               detections[[i]]$group))
                 }
         }else{
+            validate(need(trapType() == "single",""))
             detections <- detections()
             capt.hist <- get.capt.hist(detections)
             colnames(capt.hist[[1]]) <- names(table(detections$post))
@@ -347,21 +352,19 @@ shinyServer(function(input, output,session) {
         if(!is.null(traps())) {
             traps <- traps()
             detections <- detections()
-            print(trapType())
-            print(traps)
             if(trapType() == "single"){
                 maxdistance <- diff(range(traps$x,traps$y))/4
-                updateSliderInput(session, "spacing", max = maxdistance, value = maxdistance/2)
+                updateNumericInput(session, "spacing", max = maxdistance, value = maxdistance/2)
                 maxdistance <- 4*diff(range(traps$x,traps$y))
-                updateSliderInput(session, "buffer", max = maxdistance,value = maxdistance/2) 
+                updateNumericInput(session, "buffer", max = maxdistance,value = maxdistance/2) 
             }else{
                 validate(need("array"%in%names(detections),""))
                 validate(need("array"%in%names(traps),""))
                 traps <- split(traps, traps$array)
                 maxdistance <- diff(range(traps[[1]]$x,traps[[1]]$y))/4
-                updateSliderInput(session, "spacing", max = maxdistance, value = maxdistance/2)
+                updateNumericInput(session, "spacing", max = maxdistance, value = maxdistance/2)
                 maxdistance <- 4*diff(range(traps[[1]]$x,traps[[1]]$y))
-                updateSliderInput(session, "buffer", max = maxdistance,value = maxdistance/2) 
+                updateNumericInput(session, "buffer", max = maxdistance,value = maxdistance/2) 
             }   
         }
     })
@@ -375,6 +378,7 @@ shinyServer(function(input, output,session) {
             show.data(traps, capt.hist,id = input$show.call.num)
             legend("top",legend = paste("call",input$show.call.num,sep = " "),bty = "n")
         }else{
+            validate(need(trapType() == "multi",""))
             traps <- split(traps, traps$array)
             validate(need(input$show.call.num,"Please provide a call number"))
             validate(need(input$show.call.num <= nrow(capt.hist[[input$choose_trap_raw]]$bincapt),
@@ -391,7 +395,8 @@ shinyServer(function(input, output,session) {
         }
     })
     ## plot of mask
-    mask <- reactive({
+    mask <- eventReactive(input$msk,{
+        shinyjs::show("processing_msk") ## stuff to disable fitting button
         traps <- traps()
         validate(need(input$buffer > input$spacing,"The mask buffer cannot be less than the spacing"))
         validate(need(input$buffer/input$spacing < 80, "Infeasibly fine mask"))
@@ -403,6 +408,8 @@ shinyServer(function(input, output,session) {
             traps <- lapply(traps,function(x) cbind(x$x,x$y))
             mask <- lapply(traps,create.mask,buffer = input$buffer,spacing = input$spacing)
         }
+        hide("processing_msk")
+        enable("fit")
         return(mask)
     })
     output$maskPlot <- renderPlot({
@@ -412,15 +419,17 @@ shinyServer(function(input, output,session) {
             grid.arrange(show.mask(mask,traps))
         }else{
             traps <- split(traps, traps$array)
+            validate(need(is.list(mask), ""))
             m.lst <- list()
             for(i in 1:length(traps)){ m.lst[[i]] <- show.mask(mask[[i]], traps = traps[[i]])}
             do.call(grid.arrange, m.lst)
-            }
-        
-    })
+        }
+        })
     ## print out mask buffet info
     output$maskinfo <- renderText({
-        paste("This mask is assuming that a distance of ",input$buffer, "meters is the maximum distance at which a detection is feasibly possible")
+        validate(need(!is.null(mask()),""))
+        paste("This mask is assuming that a distance of ",input$buffer,
+              "meters is the maximum distance at which a detection is feasibly possible")
     })
     ## chose which parameters of which detection function to fit, conditional numeric input for fixing param values
     output$fixedParamSelection <- renderUI({

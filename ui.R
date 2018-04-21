@@ -81,16 +81,16 @@ shinyUI(fluidPage(
                          selected = "rad",inline = TRUE),
             h3(icon("puzzle-piece"),tags$b("Build mask")),
             ## Input: integer of mask buffer in meters (this is updated based on trap info when file is loaded)
-            sliderInput("buffer", "Choose mask buffer (m):",
+            numericInput("buffer", "Choose mask buffer (m):",
                         min = 1, max = 10000,
                         value = 1000),
             ## Input: integer of mask spacing in meters (this is updated based on trap info when file is loaded)
-            sliderInput("spacing", "Choose mask spacing (m):",
+            numericInput("spacing", "Choose mask spacing (m):",
                         min = 0.1, max = 1000,step = 0.1,
                         value = 250),
-            downloadButton('downloadMask', 'Mask plot'),
-            ## horizontal lines before model options,
-            
+            actionButton("msk", "Build mask",icon("cogs")),
+            hidden(p(id = "processing_msk", "Constructing mask...")),
+            #####
             h3(icon("cogs"),tags$b("Modelling")),
             ## select box for detetion functions
             selectInput("select", label = "Chose a detection function", 
@@ -112,12 +112,10 @@ shinyUI(fluidPage(
             uiOutput("fixedshape.1"),
             ## fix shape.2 to what value
             uiOutput("fixedshape.2"),
-            ## horizontal lines before choosing call number for estimated group location
-            
-            
             actionButton("fit", "Fit model",icon("cogs")),
             hidden(p(id = "processing", "Processing...")),
             hr(),
+            downloadButton('downloadMask', 'Mask plot'),
             uiOutput("which_array"),
             downloadButton('downloadSurfPlot', 'Detection surface'),
             downloadButton('downloadContPlot', 'Detection contour'),
