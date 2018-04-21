@@ -725,9 +725,11 @@ shinyServer(function(input, output,session) {
         kappa = fit$coefficients["kappa"]
         if(trapType() == "single"){
             theta = sort(fit$args$capt[[1]]$bearing - pi)
+            theta = seq(min(theta), max(theta), length.out = 1000)
             show.dvm(theta = theta, kappa = kappa)
         }else{
             theta = sort(fit$args$capt[[input$choose_trap]]$bearing - pi)
+            theta = seq(min(theta), max(theta), length.out = 1000)
             show.dvm(theta = theta, kappa = kappa)
             title(paste("array", input$choose_trap))
             }
@@ -752,20 +754,20 @@ shinyServer(function(input, output,session) {
     
     output$downloadMask <- downloadHandler(
         filename = "ascrMask.png",
-      content = function(file) {
-          png(file)
-          traps <- traps()
-          mask <- mask()
-          if(trapType() == "single"){
-              show.mask(mask,traps)
-          }else{
-              traps <- split(traps, traps$array)
-              m.lst <- list()
-              for(i in 1:length(traps)){ m.lst[[i]] <- show.mask(mask[[i]], traps = traps[[i]])}
+        content = function(file) {
+            png(file)
+            traps <- traps()
+            mask <- mask()
+            if(trapType() == "single"){
+                show.mask(mask,traps)
+            }else{
+                traps <- split(traps, traps$array)
+                m.lst <- list()
+                for(i in 1:length(traps)){ m.lst[[i]] <- show.mask(mask[[i]], traps = traps[[i]])}
               do.call(grid.arrange, m.lst)
-          }
-          dev.off()
-      })
+            }
+            dev.off()
+        })
     output$downloadSurfPlot <- downloadHandler(
         filename = "ascr_detection_surface_plot.png",
         content = function(file) {
