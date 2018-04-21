@@ -1,17 +1,4 @@
 
-
-withConsoleRedirect <- function(containerId, expr) {
-  ## Change type="output" to type="message" to catch stderr
-  ## (messages, warnings, and errors) instead of stdout.
-  txt <- capture.output(results <- expr, type = "message")
-  if (length(txt) > 0) {
-    insertUI(paste0("##", containerId), where = "beforeEnd",
-             ui = paste0(txt, "\n", collapse = "")
-    )
-  }
-  results
-}
-
 shinyServer(function(input, output,session) {
     ## initiate trap type
     trapType <- "single"
@@ -555,12 +542,11 @@ shinyServer(function(input, output,session) {
         disable("fit")
         disable("side-panel")
         shinyjs::show("processing") ## stuff to disable fitting button
-        withConsoleRedirect("console", {
-            fit <-  tryCatch({
-                fit.ascr(capt = capt.hist,traps = traps,mask = mask,detfn =  input$select,
-                         fix = fix, sv = sv,trace = TRUE) 
-            },warning = function(w) print("fit.ascr convergence issues"))
-        })
+        fit <-  tryCatch({
+            fit.ascr(capt = capt.hist,traps = traps,mask = mask,detfn =  input$select,
+                     fix = fix, sv = sv,trace = TRUE) 
+        }, warning = function(w){})
+        print(class(fit))
         enable("fit")
         enable("side-panel")
         enable("downloadSurfPlot")

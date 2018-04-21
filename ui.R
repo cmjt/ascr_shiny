@@ -265,10 +265,7 @@ shinyUI(fluidPage(
                                                   column(6, align="center",
                                                          withSpinner(plotOutput("distance_pdf"),type = 5,color = "#D3D3D3")
                                                          )
-                                              )),
-                                     tabPanel(h5(icon("paper-plane"), tags$b("R messages")),
-                                              pre(id = "console")
-                                              ))
+                                              )))
                                  )
                         )
         )
