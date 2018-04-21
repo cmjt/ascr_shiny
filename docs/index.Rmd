@@ -82,7 +82,7 @@ knitr:::include_graphics("ascr_example.png")
 
 
 
-The example data included with the `ascr` package may be used by checking the ***Use example data**. Here use of the `ascr` user interface is demonstrated using a subset of the multi array data relating to northern yellow-cheeked gibbons Nomascus annamensis analysed in Kidney, D., Rawson, B. M., Borchers, D. L., Stevenson, B. C., Marques, T. A., & Thomas, L. (2016). An efficient acoustic density estimation method with human detectors applied to gibbons in Cambodia. PloS one, 11(5), e0155066.
+The example data included with the `ascr` package may be used by checking the ***Use example data**. Here use of the `ascr` user interface is demonstrated using a subset of the multi array data (includng bearing information) relating to northern yellow-cheeked gibbons Nomascus annamensis analysed in Kidney, D., Rawson, B. M., Borchers, D. L., Stevenson, B. C., Marques, T. A., & Thomas, L. (2016). An efficient acoustic density estimation method with human detectors applied to gibbons in Cambodia. PloS one, 11(5), e0155066.
 
 On selecting the **Data** tab your data will be displayed. It is important to check that the data is displayed correctly (i.e., imported in correctly from the `.csv` file). If this is not the case the sidebar has certain options that dictate how the `.csv` file format is understood
 
@@ -124,6 +124,9 @@ The two choices to be made when constructing your mask are the **buffer** (m) an
 The **buffer** (m) gives the maximum distance between each mask point and the closest trap. It should to be large enough so that the region it covers all plausible locations for the detected calls---this will depend on the species being detected (e.g., for a gibbon group this is $\sim$ 2km, whereas for a Western Cape moss frog this will be $\sim$ 40m).
 
 The **spacing** (m) gives the distance between adjacent **mask** points. Thus, the smaller the **spacing** the finer the **mask** resolution and the greater the number of mask points. 
+
+
+The **Build mask** button must be clicked to construct the mask. Once done the left hand main panel will display the mask/s.
 
 ```{r, out.width = "70%",out.extra='style="background-color: #D3D3D3; padding:10px; display: inline-block;"',echo = FALSE}
 knitr:::include_graphics("ascr_buildmask.png")
