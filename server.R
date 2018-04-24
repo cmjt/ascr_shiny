@@ -1,3 +1,13 @@
+pkgs <- c("shiny","rmarkdown", "shinyjs", "shinycssloaders","shinythemes","animation","devtools","ggplot2","gridExtra")
+options(warn = -1)
+for (i in pkgs){
+    if (!require(i, quietly = TRUE, character.only = TRUE)){
+        install.packages(i)
+    }
+}
+if(!require("ascr",quietly = TRUE, character.only = TRUE) | packageVersion("ascr") < 2.1 ){
+    devtools::install_github("b-steve/ascr")
+}
 
 shinyServer(function(input, output,session) {
     ## initiate trap type

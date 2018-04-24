@@ -10,7 +10,7 @@ for (i in pkgs){
         install.packages(i)
     }
 }
-if(!require("ascr",quietly = TRUE, character.only = TRUE)){
+if(!require("ascr",quietly = TRUE, character.only = TRUE) | packageVersion("ascr") < 2.1 ){
     devtools::install_github("b-steve/ascr")
 }
 runApp(appDir, display.mode = "normal",launch.browser = TRUE)
