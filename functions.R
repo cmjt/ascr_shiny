@@ -70,12 +70,12 @@ show.distgam <- function(x = NULL, shape = NULL,d = NULL){
 #' show.data(traps, capt.hist)}
 show.data <- function(traps, capt.hist, xlim = NULL,ylim = NULL, id = 1,show.axes = FALSE){
     if(is.null(xlim)){
-        xrang = range(traps[,1])
+        xrang = range(traps$x)
         diff = diff(xrang)
         xlim =  c(xrang[1] - diff,xrang[2] + diff)
     }
     if(is.null(ylim)){
-        yrang = range(traps[,2])
+        yrang = range(traps$y)
         diff = diff(yrang)
         ylim =  c(yrang[1] - diff,yrang[2] + diff)
     }

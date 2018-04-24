@@ -8,7 +8,7 @@ for (i in pkgs){
 if(!require("ascr",quietly = TRUE, character.only = TRUE) | packageVersion("ascr") < 2.1 ){
     devtools::install_github("b-steve/ascr")
 }
-
+options(warn = 0)
 shinyServer(function(input, output,session) {
     ## initiate trap type
     trapType <- "single"
@@ -337,7 +337,7 @@ shinyServer(function(input, output,session) {
                     return(head(capthist[[input$choose_trap_capt]][[1]]))
                 }else{
                     validate(need(input$choose_trap <= max(as.numeric(names(table(traps$array)))),"Please provide valid array"))
-                    return(capthist[[input$choose_trap_capt]][[1]])
+                    try(capthist[[input$choose_trap_capt]][[1]],silent = TRUE)
                 }  
                 
             }
@@ -368,21 +368,19 @@ shinyServer(function(input, output,session) {
     ## show all plot for raw data
     output$show <- renderPlot({
         traps <- traps()
-        capt.hist <- capthist()
-        if(trapType() == "single"){
-            validate(need(input$show.call.num,"Please provide a call number"))
-            validate(need(input$show.call.num <= nrow(capt.hist$bincapt),"Please provide a valid call number"))
-            show.data(traps, capt.hist,id = input$show.call.num)
-            legend("top",legend = paste("call",input$show.call.num,sep = " "),bty = "n")
-        }else{
-            validate(need(trapType() == "multi",""))
-            traps <- split(traps, traps$array)
-            validate(need(input$show.call.num,"Please provide a call number"))
-            validate(need(input$show.call.num <= nrow(capt.hist[[input$choose_trap_raw]]$bincapt),
-                          "Please provide a valid call number"))
-            show.data(traps[[input$choose_trap_raw]], capt.hist[[input$choose_trap_raw]],id = input$show.call.num)
-            legend("top",legend = paste("array", input$choose_trap_raw, " call",input$show.call.num,sep = " "),bty = "n")
-        }
+            capt.hist <- capthist()
+            if(trapType() == "single"){
+                validate(need(input$show.call.num,"Please provide a call number"))
+                validate(need(input$show.call.num <= nrow(capt.hist$bincapt),"Please provide a valid call number"))
+                show.data(traps, capt.hist,id = input$show.call.num)
+                legend("top",legend = paste("call",input$show.call.num,sep = " "),bty = "n")
+            }else{
+                validate(need(trapType() == "multi",""))
+                traps <- split(traps, traps$array)
+                validate(need(input$show.call.num,"Please provide a call number"))
+                try(show.data(traps[[input$choose_trap_raw]], capt.hist[[input$choose_trap_raw]],id = input$show.call.num),silent = TRUE)
+                legend("top",legend = paste("array", input$choose_trap_raw, " call",input$show.call.num,sep = " "),bty = "n")
+            }
     })
     ## change buffer sliding in advanced increase buffer option chosen
     observe({
