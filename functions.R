@@ -5,8 +5,9 @@
 #' and \code{group}. It is the pairing of
 #' \code{group} and \code{occasion} that forms the individual
 #' "call id". Optional to include a column of bearings (in radians)
-#' and/or distances. 
-get.capt.hist <- function(data){
+#' and/or distances.
+#' @param n.traps numeric specifying how many posts/traps there are
+get.capt.hist <- function(data, n.traps){
     occasion <- data$occasion
     post <- data$post
     group <- data$group
@@ -16,7 +17,7 @@ get.capt.hist <- function(data){
     if("bearing" %in% names(data)) {tmp$bearing <- data$bearing}
     if("distance" %in% names(data)) {tmp$dist <- data$distance}
     tmp <- tmp[order(tmp$ID),]
-    capt.hist <- create.capt(tmp,n.traps = length(table(tmp$trap)))
+    capt.hist <- create.capt(tmp,n.traps = n.traps)
     capt.hist
 }
 #' Function to plot mask along with trap locations in a 'tidy' presentable manner

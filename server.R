@@ -301,20 +301,20 @@ shinyServer(function(input, output,session) {
 
     capthist <- reactive({
         validate(need(!is.null(detections()),""))
+        detections <- detections()
+        n.traps <- length(table(detections$post))
         if(trapType() == "multi"){
-            detections <- detections()
             detections <- split(detections, detections$array)
-            capt.hist <- lapply(detections, get.capt.hist)
+            capt.hist <- lapply(detections, get.capt.hist, n.traps = n.traps)
             for(i in 1:length(capt.hist)){
-                colnames(capt.hist[[i]][[1]]) <- names(table(detections[[i]]$post))
+                colnames(capt.hist[[i]][[1]]) <- paste(1:n.traps)
                 rownames(capt.hist[[i]][[1]]) <- unique(paste("occasion",detections[[i]]$occasion, "group",
                                                               detections[[i]]$group))
                 }
         }else{
             validate(need(trapType() == "single",""))
-            detections <- detections()
-            capt.hist <- get.capt.hist(detections)
-            colnames(capt.hist[[1]]) <- names(table(detections$post))
+            capt.hist <- get.capt.hist(detections, n.traps = n.traps)
+            colnames(capt.hist[[1]]) <- paste(1:n.traps)
             rownames(capt.hist[[1]]) <- unique(paste("occasion",detections$occasion, "group", detections$group))
         }
         return(capt.hist)
@@ -550,11 +550,8 @@ shinyServer(function(input, output,session) {
         disable("fit")
         disable("side-panel")
         shinyjs::show("processing") ## stuff to disable fitting button
-        fit <-  tryCatch({
-            fit.ascr(capt = capt.hist,traps = traps,mask = mask,detfn =  input$select,
-                     fix = fix, sv = sv,trace = TRUE) 
-        }, warning = function(w){})
-        print(class(fit))
+        fit <-  fit.ascr(capt = capt.hist,traps = traps,mask = mask,detfn =  input$select,
+                     fix = fix, sv = sv,trace = TRUE)
         enable("fit")
         enable("side-panel")
         enable("downloadSurfPlot")
