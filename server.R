@@ -572,22 +572,25 @@ shinyServer(function(input, output,session) {
         if(class(fit)[1]=="ascr"){
             ci <- confint(fit)
             res <- data.frame(Estimate = summary(fit)$coefs,Std.Error = summary(fit)$coefs.se, "2.5%" = ci[,1], "97.5%" = ci[,2] )
+            if(res$Estimate[1] < 0.01){res <- matrix(apply(res,1,formatC, format = "e",digits = 2),ncol = 4, byrow = TRUE)}
             rownames(res) <- names(coef(fit))
             colnames(res) <- c("Estimate", "Std.Error", "2.5% Cl", "97.5% Cl")
             return(res)
         }
-    },rownames = TRUE)
+    },rownames = TRUE,digits = 3)
     ## density
      output$denst <- renderTable({
         fit <- fit()
         if(class(fit)[1]=="ascr"){
             res <- rbind( cbind(fit$coefficients["D"],confint(fit)[1,1],confint(fit)[1,2]),
                          cbind(fit$coefficients["D"]/0.01,confint(fit)[1,1]/0.01,confint(fit)[1,2]/0.01))
+            if(res[1,1] < 0.01){res <- matrix(apply(res,1,formatC, format = "e",digits = 2),ncol = 3,byrow = TRUE)}
             rownames(res) <- c("per hectare",   "per squared km")
             colnames(res) <- c("Call density", "2.5% Cl", "97.5% Cl")
+           
             return(res)
         }
-    },rownames = TRUE,colnames = TRUE)
+    },rownames = TRUE,colnames = TRUE, digits = 3)
     ## AIC and log Likelihood
     output$AIClL <- renderTable({
         fit <- fit()
