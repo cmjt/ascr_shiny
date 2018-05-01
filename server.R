@@ -172,9 +172,9 @@ shinyServer(function(input, output,session) {
                      value = mn)
     })
     ## Clunky way of enabling/disabling buttons
-    ## observeEvent(!input$msk,{
-    ##     disable("fit")
-    ## })
+    observeEvent(!input$msk,{
+        disable("fit")
+    })
     observe({
         if(input$example == TRUE){
             disable("file1")
@@ -215,33 +215,33 @@ shinyServer(function(input, output,session) {
             enable("which_example_multi")
             shinyjs::show("which_example_multi")
         }
-    ##     ## initislly disable some options if no model fitted
-    ##     observeEvent(!input$fit,{
-    ##         disable("downloadMask")
-    ##         disable("downloadSurfPlot")
-    ##         disable("downloadContPlot")
-    ##         disable("downloadDetPlot")
-    ##         disable("call.num")
-    ##         disable("reset_locplot")
-    ##         disable("distD")
-    ##         disable("downloadbearingPlot")
-    ##         disable("downloaddistancePlot")
-    ##         disable("anispeed")
-    ##         disable("report")
-    ##     })
-    ##     observeEvent(input$fit,{
-    ##         enable("downloadMask")
-    ##         enable("downloadSurfPlot")
-    ##         enable("downloadContPlot")
-    ##         enable("downloadDetPlot")
-    ##         enable("call.num")
-    ##         enable("reset_locplot")
-    ##         enable("distD")
-    ##         enable("downloadbearingPlot")
-    ##         enable("downloaddistancePlot")
-    ##         enable("anispeed")
-    ##         enable("report")
-    ##     })
+        ## initislly disable some options if no model fitted
+        observeEvent(!input$fit,{
+            disable("downloadMask")
+            disable("downloadSurfPlot")
+            disable("downloadContPlot")
+            disable("downloadDetPlot")
+            disable("call.num")
+            disable("reset_locplot")
+            disable("distD")
+            disable("downloadbearingPlot")
+            disable("downloaddistancePlot")
+            disable("anispeed")
+            disable("report")
+        })
+        observeEvent(input$fit,{
+            enable("downloadMask")
+            enable("downloadSurfPlot")
+            enable("downloadContPlot")
+            enable("downloadDetPlot")
+            enable("call.num")
+            enable("reset_locplot")
+            enable("distD")
+            enable("downloadbearingPlot")
+            enable("downloaddistancePlot")
+            enable("anispeed")
+            enable("report")
+        })
         
         if(input$example == FALSE | isTruthy(input$file1) == FALSE){
             disable("downloadMask")
