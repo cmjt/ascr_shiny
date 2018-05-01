@@ -172,9 +172,6 @@ shinyServer(function(input, output,session) {
                      value = mn)
     })
     ## Clunky way of enabling/disabling buttons
-    observeEvent(!input$msk,{
-        disable("fit")
-    })
     observe({
         if(input$example == TRUE){
             disable("file1")
@@ -523,8 +520,15 @@ shinyServer(function(input, output,session) {
             traps <- lapply(traps,function(x) cbind(x$x,x$y))  
         }
         mask <- mask()
+        validate(need(!is.null(mask), "Please construct mask"))
         nms <- names(detections)
         capt.hist <- capthist()
+        validate(need(!is.null(capt.hist), "No capture hstory information"))
+        if(trapType() == "multi"){
+        validate(need(sum(sapply(capt.hist, function(x) nrow(x$bincapt)) == 1) == 0, "Must have more than one occasion at an array"))
+        validate(need(min(sapply(capt.hist, function(x) ncol(x$bincapt))) - max(sapply(capt.hist, function(x) ncol(x$bincapt))) == 0, "Must declare all traps in capture history "))
+        validate(need(length(capt.hist)==length(mask), "Please construct mask for your loaded traps"))
+        }
         ## fixed values
         param.fix <- input$parameter
         param.fix.value <- list(g0 = input$g0,sigma = input$sigma,z = input$z,shape = input$shape,
