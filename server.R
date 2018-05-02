@@ -132,9 +132,12 @@ shinyServer(function(input, output,session) {
     output$which_array_raw <- renderUI({
         detections <- detections()
         traps <- traps()
+        validate(need(!is.null(traps),""))
+        validate(need(!is.null(detections),""))
         validate(need("array"%in%names(detections),""))
         validate(need("array"%in%names(traps),""))
         validate(need(trapType() == "multi",""))
+        validate(need(length(table(traps$array))==length(table(detections$array)),"Need equal number of arrays in detection file as in trap file"))
         arrs <- as.numeric(names(table(traps$array)))
         mn <- min(arrs)
         mx <- max(arrs)
@@ -147,9 +150,12 @@ shinyServer(function(input, output,session) {
     output$which_array_capt <- renderUI({
         detections <- detections()
         traps <- traps()
+        validate(need(!is.null(traps),""))
+        validate(need(!is.null(detections),""))
         validate(need("array"%in%names(detections),""))
         validate(need("array"%in%names(traps),""))
         validate(need(trapType() == "multi",""))
+        validate(need(length(table(traps$array))==length(table(detections$array)),"Need equal number of arrays in detection file as in trap file"))
         arrs <- as.numeric(names(table(traps$array)))
         mn <- min(arrs)
         mx <- max(arrs)
@@ -161,9 +167,12 @@ shinyServer(function(input, output,session) {
     output$which_array <- renderUI({
         detections <- detections()
         traps <- traps()
+        validate(need(!is.null(traps),""))
+        validate(need(!is.null(detections),""))
         validate(need("array"%in%names(detections),""))
         validate(need("array"%in%names(traps),""))
         validate(need(trapType() == "multi",""))
+        validate(need(length(table(traps$array))==length(table(detections$array)),"Need equal number of arrays in detection file as in trap file"))
         arrs <- as.numeric(names(table(traps$array)))
         mn <- min(arrs)
         mx <- max(arrs)
@@ -297,10 +306,13 @@ shinyServer(function(input, output,session) {
     striped = TRUE)
 
     capthist <- reactive({
-        validate(need(!is.null(detections()),""))
         detections <- detections()
+        traps <- traps()
+        validate(need(!is.null(traps),""))
+        validate(need(!is.null(detections),""))
         n.traps <- length(table(detections$post))
         if(trapType() == "multi"){
+            validate(need(length(table(traps$array))==length(table(detections$array)),"Need equal number of arrays in detection file as in trap file"))
             detections <- split(detections, detections$array)
             capt.hist <- lapply(detections, get.capt.hist, n.traps = n.traps)
             for(i in 1:length(capt.hist)){
@@ -390,6 +402,7 @@ shinyServer(function(input, output,session) {
     mask <- eventReactive(input$msk,{
         shinyjs::show("processing_msk") ## stuff to disable fitting button
         traps <- traps()
+        validate(need(!is.null(traps),""))
         validate(need(input$buffer > input$spacing,"The mask buffer cannot be less than the spacing"))
         validate(need(input$buffer/input$spacing < 80, "Infeasibly fine mask"))
         if(trapType() == "single"){
@@ -525,9 +538,9 @@ shinyServer(function(input, output,session) {
         capt.hist <- capthist()
         validate(need(!is.null(capt.hist), "No capture hstory information"))
         if(trapType() == "multi"){
-        validate(need(sum(sapply(capt.hist, function(x) nrow(x$bincapt)) == 1) == 0, "Must have more than one occasion at an array"))
-        validate(need(min(sapply(capt.hist, function(x) ncol(x$bincapt))) - max(sapply(capt.hist, function(x) ncol(x$bincapt))) == 0, "Must declare all traps in capture history "))
-        validate(need(length(capt.hist)==length(mask), "Please construct mask for your loaded traps"))
+            validate(need(sum(sapply(capt.hist, function(x) nrow(x$bincapt)) == 1) == 0, "Must have more than one occasion at an array"))
+            validate(need(min(sapply(capt.hist, function(x) ncol(x$bincapt))) - max(sapply(capt.hist, function(x) ncol(x$bincapt))) == 0, "Must declare all traps in capture history "))
+            validate(need(length(capt.hist)==length(mask), "Please construct mask for your loaded traps"))
         }
         ## fixed values
         param.fix <- input$parameter
