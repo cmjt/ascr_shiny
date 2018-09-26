@@ -223,7 +223,6 @@ shinyServer(function(input, output,session) {
         }
         ## initislly disable some options if no model fitted
         observeEvent(!input$fit,{
-            disable("downloadMask")
             disable("downloadSurfPlot")
             disable("downloadContPlot")
             disable("downloadDetPlot")
@@ -236,7 +235,6 @@ shinyServer(function(input, output,session) {
             disable("report")
         })
         observeEvent(input$fit,{
-            enable("downloadMask")
             enable("downloadSurfPlot")
             enable("downloadContPlot")
             enable("downloadDetPlot")

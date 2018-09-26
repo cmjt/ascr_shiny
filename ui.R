@@ -24,7 +24,7 @@ shinyUI(fluidPage(
             h3(icon("table"), tags$b("Read in data")),
             ## example data loading
             checkboxInput("example", "Use example data",value = FALSE), ## example
-             ## user data loading
+            ## user data loading
             fileInput("file1", "Choose CSV file of trap locations",
                       multiple = FALSE,
                       accept = c("text/csv",
@@ -82,15 +82,15 @@ shinyUI(fluidPage(
             h3(icon("puzzle-piece"),tags$b("Build mask")),
             ## Input: integer of mask buffer in meters (this is updated based on trap info when file is loaded)
             numericInput("buffer", "Choose mask buffer (m):",
-                        min = 1, max = 10000,
-                        value = 1000),
+                         min = 1, max = 10000,
+                         value = 1000),
             ## Input: integer of mask spacing in meters (this is updated based on trap info when file is loaded)
             numericInput("spacing", "Choose mask spacing (m):",
-                        min = 0.1, max = 1000,step = 0.1,
-                        value = 250),
+                         min = 0.1, max = 1000,step = 0.1,
+                         value = 250),
             actionButton("msk", "Build mask",icon("cogs")),
             hidden(p(id = "processing_msk", "Constructing mask...")),
-            #####
+#####
             h3(icon("cogs"),tags$b("Modelling")),
             ## select box for detetion functions
             selectInput("select", label = "Chose a detection function", 
@@ -115,28 +115,8 @@ shinyUI(fluidPage(
             actionButton("fit", "Fit model",icon("cogs")),
             hidden(p(id = "processing", "Processing...")),
             hr(),
-            downloadButton('downloadMask', 'Mask plot'),
-            uiOutput("which_array"),
-            downloadButton('downloadSurfPlot', 'Detection surface'),
-            downloadButton('downloadContPlot', 'Detection contour'),
-            downloadButton('downloadDetPlot', 'Detection function'),
-            numericInput("call.num", "Choose call number to display in estimated location plot:",
-                         min = 1, max = 1000,step = 1,
-                         value = 1),
-            actionButton("reset_locplot", "Reset location plot",icon("refresh")),
-            numericInput("distD", "Choose distance at which to plot distance error distribution (m):",
-                         min = 1, max = 10000,step = 1,
-                         value = 1),
-            downloadButton('downloadbearingPlot', 'Bearing distribution (rad)'),
-            downloadButton('downloaddistancePlot', 'Distance distribution (m)'),
             ## Other stuff
             h3(icon("ellipsis-h"),tags$b("Other")),
-            numericInput("anispeed","Animation frame rate for report (s)",
-                         min = 0.1,max = 5,step = 0.1,
-                         value = 1),
-            downloadButton("report", "Animation"),
-            hidden(p(id = "proc_report", "Processing report...")),
-            
             actionButton("reset_input", "Reset sidebar",icon("refresh")),
             actionButton("close", "Shut down",icon("power-off")),
             checkboxInput("advanced","Advanced options"),
@@ -181,8 +161,8 @@ shinyUI(fluidPage(
                                               includeMarkdown(file.path("text", "details.md"))),
                                      tabPanel(h4(icon("info-circle"),tags$b("ascr")),
                                               includeMarkdown(file.path("text", "ascr.md")))
-                                     )),
-                                 
+                                 )),
+                        
                         tabPanel( h4(icon("bar-chart"), tags$b("Data")),
                                  tabsetPanel(
                                      tabPanel(h5(icon("map-marker"), tags$b("Traps")),
@@ -215,15 +195,17 @@ shinyUI(fluidPage(
                                  fluidRow(
                                      column(width = 12, align="center",
                                             textOutput("maskinfo")
-                                         )),
-                                     column(width = 12, align="center",
-                                            withSpinner(
-                                                plotOutput(height = "800px",width = "800px","maskPlot"),
-                                                type = 5,color = "#D3D3D3"))
-                                ),
+                                            )),
+                                 column(width = 12, align="center",
+                                        withSpinner(
+                                            plotOutput(height = "800px",width = "800px","maskPlot"),
+                                            type = 5,color = "#D3D3D3"),
+                                        downloadButton('downloadMask', 'Mask plot'),
+                                        uiOutput("which_array"))
+                                 ),
                         tabPanel(h4(icon("cogs"), tags$b("Model")),
                                  tabsetPanel(
-                                     tabPanel(h5(icon("area-chart"), tags$b("Output")),
+                                     tabPanel(h5(icon("pencil-square"), tags$b("Model output")),
                                               fluidRow(
                                                   column(width = 4,
                                                          fluidRow(
@@ -231,22 +213,27 @@ shinyUI(fluidPage(
                                                              withSpinner(tableOutput("coefs"),type = 5,color = "#D3D3D3")),
                                                          fluidRow(
                                                              h4(icon("volume-control-phone"),"Density")),
-                                                             withSpinner(tableOutput("denst"),type = 5,color = "#D3D3D3")
+                                                         withSpinner(tableOutput("denst"),type = 5,color = "#D3D3D3")
                                                          ),
                                                   column(width = 2,
                                                          h4(icon("info-circle"),"Model info"),
                                                          withSpinner(tableOutput("AIClL"),type = 5,color = "#D3D3D3")),
                                                   column(width = 6,
                                                          h4(icon("line-chart"),"Detection function"),
-                                                         withSpinner(plotOutput("detfn"),type = 5,color = "#D3D3D3"))
+                                                         withSpinner(plotOutput("detfn"),type = 5,color = "#D3D3D3"),
+                                                         downloadButton('downloadDetPlot', 'Detection function'))
                                               ),
                                               fluidRow(
                                                   h4(icon("area-chart"),"Detection surface"),
-                                                  withSpinner(plotOutput("detectionsurf"),type = 5,color = "#D3D3D3")
+                                                  withSpinner(plotOutput("detectionsurf"),type = 5,color = "#D3D3D3"),
+                                                  downloadButton('downloadSurfPlot', 'Detection surface'),
+                                                  downloadButton('downloadContPlot', 'Detection contour'))
+                                             
                                               ),
+                                     tabPanel(h5(icon("map-signs"), tags$b("Location")),
                                               fluidRow(class = "locs",
                                                        h4(icon("map-signs"),
-                                                          "Location estimates (interactive plot---drag and double-click to zoom)"),
+                                                          "Interactive plot---drag and double-click to zoom"),
                                                        column(12,
                                                               withSpinner(plotOutput("locs", height = "700px",
                                                                                      width = "700px",
@@ -256,7 +243,21 @@ shinyUI(fluidPage(
                                                                                          resetOnNew = TRUE)),
                                                                           type = 5,color = "#D3D3D3"),
                                                               tags$head(tags$style(".locs{height:750px}"))
+                                                              ),
+                                                       column(4,
+                                                       numericInput("call.num",
+                                                                           "Choose call number to display in estimated location plot:",
+                                                                           min = 1, max = 1000,step = 1,
+                                                                    value = 1),
+                                                       actionButton("reset_locplot", "Reset location plot",icon("refresh"))),
+                                                       column(4,
+                                                       numericInput("anispeed","Animation frame rate for report (s)",
+                                                                    min = 0.1,max = 5,step = 0.1,
+                                                                    value = 1),
+                                                       downloadButton("report", "Animation"),
+                                                       hidden(p(id = "proc_report", "Processing report...")))
                                                        )),
+                                     tabPanel(h5(icon("line-chart"), tags$b("Other plots")),
                                               fluidRow(
                                                   h4(icon("line-chart"),"Measurement error distributions"),
                                                   column(6, align="center",
@@ -264,11 +265,22 @@ shinyUI(fluidPage(
                                                          ),
                                                   column(6, align="center",
                                                          withSpinner(plotOutput("distance_pdf"),type = 5,color = "#D3D3D3")
+                                                         ),
+                                                  numericInput("distD",
+                                                               "Choose distance at which to plot distance error distribution (m):",
+                                                               min = 1, max = 10000,step = 1,
+                                                               value = 1),
+                                                  downloadButton('downloadbearingPlot', 'Bearing distribution (rad)'),
+                                                  downloadButton('downloaddistancePlot', 'Distance distribution (m)'),
+                                                  h4(icon("globe"),"Density surface"),
+                                                   column(12, align="center",
+                                                         withSpinner(plotOutput("density_surface"),type = 5,color = "#D3D3D3")
                                                          )
-                                              )))
+                                              ))
+                                 )
                                  )
                         )
         )
     )
 ))
- 
+
