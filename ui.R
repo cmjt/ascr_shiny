@@ -6,6 +6,7 @@ library(animation)
 library(ascr)
 library(ggplot2)
 library(gridExtra)
+library(raster)
 source("functions.R")
 
 
@@ -90,7 +91,7 @@ shinyUI(fluidPage(
                          value = 250),
             actionButton("msk", "Build mask",icon("cogs")),
             hidden(p(id = "processing_msk", "Constructing mask...")),
-#####
+            ## break
             h3(icon("cogs"),tags$b("Modelling")),
             ## select box for detetion functions
             selectInput("select", label = "Chose a detection function", 
@@ -163,7 +164,7 @@ shinyUI(fluidPage(
                                               includeMarkdown(file.path("text", "ascr.md")))
                                  )),
                         
-                        tabPanel( h4(icon("bar-chart"), tags$b("Data")),
+                        tabPanel( h4(icon("bar-chart"), tags$b("Dectection data")),
                                  tabsetPanel(
                                      tabPanel(h5(icon("map-marker"), tags$b("Traps")),
                                               fluidRow(
@@ -191,7 +192,7 @@ shinyUI(fluidPage(
                                                                   value = 1),
                                                      plotOutput( height = "700px",width = "700px","show")))
                                  )),
-                        tabPanel(h4(icon("puzzle-piece"), tags$b("Mask")),
+                        tabPanel(h4(icon("database"), tags$b("Mask")),
                                  fluidRow(
                                      column(width = 12, align="center",
                                             textOutput("maskinfo")
@@ -202,6 +203,15 @@ shinyUI(fluidPage(
                                             type = 5,color = "#D3D3D3"),
                                         downloadButton('downloadMask', 'Mask plot'),
                                         uiOutput("which_array"))
+                                 ),
+                        tabPanel(h4(icon("puzzle-piece"), tags$b("Covariates")),
+                                 fluidRow(
+                                     column(width = 12, align="center",
+                                            fileInput("covs", "Choose raster (.tif) covariate files",
+                                                      multiple = TRUE,
+                                                      accept = c(".tif"))
+                                            )),
+                                 plotOutput("cov.list")
                                  ),
                         tabPanel(h4(icon("cogs"), tags$b("Model")),
                                  tabsetPanel(

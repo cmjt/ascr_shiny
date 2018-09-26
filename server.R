@@ -128,6 +128,24 @@ shinyServer(function(input, output,session) {
             }
         }
     })
+    ## covariates
+    covariates <- reactive({
+        req(input$covs)
+        files <- input$covs
+        lst <- list()
+        for(i in 1:length(files[,1])){
+            lst[[i]] <- raster(files[[i,"datapath"]])
+        }
+        names(lst) <- files[,1]
+        lst
+        })
+    output$cov.list <- renderPlot({
+        req(input$covs)
+        covariates <- covariates()
+        par(mfrow = c(1,2))
+        plot(covariates[[1]],main = names(covariates)[1])
+        plot(covariates[[2]],main = names(covariates)[2])
+        })
     ## which array raw
     output$which_array_raw <- renderUI({
         detections <- detections()
