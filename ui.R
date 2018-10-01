@@ -1,4 +1,4 @@
-pkgs <- c("shiny","rmarkdown", "shinyjs", "shinycssloaders","shinythemes","animation","devtools","ggplot2","gridExtra","raster")
+pkgs <- c("shiny","rmarkdown", "shinyjs", "shinycssloaders","shinythemes","animation","devtools","ggplot2","gridExtra","raster","rasterVis")
 options(warn = -1)
 for (i in pkgs){
     if (!require(i, quietly = TRUE, character.only = TRUE)){
@@ -54,13 +54,13 @@ shinyUI(fluidPage(
                                                       "Multiple" = "multi"),
                                           inline = TRUE,selected = "single")
                              ),
-            radioButtons("which_example", "Chose example data to load",
+            radioButtons("which_example", "Choose example data to load",
                          choices = c( "Simple" = "simple",
                                      "With bearings (rad)" = "bearings",
                                      "With distance (m)" = "distance",
                                      "With bearings (rad) and distance (m)" = "bd"),
                          inline = TRUE),
-            radioButtons("which_example_multi", "Chose example data to load",
+            radioButtons("which_example_multi", "Choose example data to load",
                          choices = c( "Simple" = "simple",
                                      "With bearings (rad)" = "bearings"),
                          inline = TRUE),
@@ -81,7 +81,7 @@ shinyUI(fluidPage(
                                      Head = "head"),
                          selected = "all",inline = TRUE),
             
-            radioButtons("bearing_range", "Chose bearing measurements",
+            radioButtons("bearing_range", "Choose bearing measurements",
                          choices = c("Degrees" = "bd",
                                      "Radians" = "rad"),
                          selected = "rad",inline = TRUE),
@@ -99,7 +99,7 @@ shinyUI(fluidPage(
             ## break
             h3(icon("cogs"),tags$b("Modelling")),
             ## select box for detetion functions
-            selectInput("select", label = "Chose a detection function", 
+            selectInput("select", label = "Choose a detection function", 
                         choices = list("halfnormal" = 'hn', "hazard rate" = 'hr', "threshold" = 'th'), 
                         selected = "hn"),
             ## check box conditional on value of detfn chosen
@@ -135,23 +135,23 @@ shinyUI(fluidPage(
                 conditionalPanel(
                     condition = "input.advancedOptions.includes('sv')",
                     uiOutput("startParamSelection"),
-                    uiOutput("svg0"), ## chose g0 sv
-                    uiOutput("svsigma"), ## chose sigma sv
-                    uiOutput("svz"), ## chose z sv
-                    uiOutput("svshape"), ## chose shape sv
-                    uiOutput("svscale"), ## chose scale sv
-                    uiOutput("svshape.1"), ## chose shape.1 sv
-                    uiOutput("svshape.2") ## chose shape.2 sv
+                    uiOutput("svg0"), ## choose g0 sv
+                    uiOutput("svsigma"), ## choose sigma sv
+                    uiOutput("svz"), ## choose z sv
+                    uiOutput("svshape"), ## choose shape sv
+                    uiOutput("svscale"), ## choose scale sv
+                    uiOutput("svshape.1"), ## choose shape.1 sv
+                    uiOutput("svshape.2") ## choose shape.2 sv
                 ),
                 conditionalPanel(
                     condition = "input.advancedOptions.includes('inc')",
-                    numericInput("incmaskbuffer","Chose higher bound for the mask buffer",
+                    numericInput("incmaskbuffer","Choose higher bound for the mask buffer",
                                  min = 1, max = 10000000,step = 0.1,
                                  value = 1000)
                 ),
                 conditionalPanel(
                     condition = "input.advancedOptions.includes('fine')",
-                    numericInput("plotmaskspacing","Chose mask spacing (plotting purposes only)",
+                    numericInput("plotmaskspacing","Choose mask spacing (plotting purposes only)",
                                  min = 0.1, max = 10000000,step = 0.1,
                                  value = 250)
                 ),
@@ -216,7 +216,8 @@ shinyUI(fluidPage(
                                                       multiple = TRUE,
                                                       accept = c(".tif"))
                                             )),
-                                 plotOutput("cov.list")
+                                 column(width = 12, align="center",
+                                        plotOutput(height = "800px",width = "800px","cov.list"))
                                  ),
                         tabPanel(h4(icon("cogs"), tags$b("Model")),
                                  tabsetPanel(

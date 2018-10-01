@@ -132,9 +132,8 @@ shinyServer(function(input, output,session) {
     output$cov.list <- renderPlot({
         req(input$covs)
         covariates <- covariates()
-        par(mfrow = c(1,2))
-        plot(covariates[[1]],main = names(covariates)[1])
-        plot(covariates[[2]],main = names(covariates)[2])
+        covs <- lapply(covariates,function(x) gplot(x) + geom_tile(aes(fill = value)))
+        do.call(grid.arrange,covs)
         })
     ## which array raw
     output$which_array_raw <- renderUI({
@@ -436,13 +435,13 @@ shinyServer(function(input, output,session) {
             do.call(grid.arrange, m.lst)
         }
         })
-    ## print out mask buffet info
+    ## print out mask buffer info
     output$maskinfo <- renderText({
         validate(need(!is.null(mask()),""))
         paste("This mask is assuming that a distance of ",input$buffer,
               "meters is the maximum distance at which a detection is feasibly possible")
     })
-    ## chose which parameters of which detection function to fit, conditional numeric input for fixing param values
+    ## choose which parameters of which detection function to fit, conditional numeric input for fixing param values
     output$fixedParamSelection <- renderUI({
         params.fix <- cbind(c("g0","sigma","g0","sigma","z","shape","scale"),
                             c("hn","hn","hr","hr","hr","th","th"))
