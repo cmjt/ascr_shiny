@@ -31,6 +31,22 @@ shinyUI(fluidPage(
             ## example data loading
             checkboxInput("example", "Use example data",value = FALSE), ## example
             ## user data loading
+            checkboxInput("header", "Header", TRUE),
+            radioButtons("sep", "Separator",
+                         choices = c(Comma = ",",
+                                     Semicolon = ";",
+                                     Tab = "\t"),
+                         selected = ",",inline = TRUE),
+            radioButtons("quote", "Quote",
+                         choices = c(None = "",
+                                     "Double Quote" = '"',
+                                     "Single Quote" = "'"),
+                         selected = '"',inline = TRUE),
+
+            radioButtons("disp", "Display",
+                         choices = c( All = "all",
+                                     Head = "head"),
+                         selected = "all",inline = TRUE),
             fileInput("file1", "Choose CSV file of trap locations",
                       multiple = FALSE,
                       accept = c("text/csv",
@@ -64,22 +80,11 @@ shinyUI(fluidPage(
                          choices = c( "Simple" = "simple",
                                      "With bearings (rad)" = "bearings"),
                          inline = TRUE),
-            checkboxInput("header", "Header", TRUE),
-            radioButtons("sep", "Separator",
-                         choices = c(Comma = ",",
-                                     Semicolon = ";",
-                                     Tab = "\t"),
-                         selected = ",",inline = TRUE),
-            radioButtons("quote", "Quote",
-                         choices = c(None = "",
-                                     "Double Quote" = '"',
-                                     "Single Quote" = "'"),
-                         selected = '"',inline = TRUE),
-
-            radioButtons("disp", "Display",
-                         choices = c( All = "all",
-                                     Head = "head"),
-                         selected = "all",inline = TRUE),
+            radioButtons("example_covariates", "Include covariate data?",
+                                          choices = c("Yes" = "yes",
+                                                      "No" = "no"),
+                                          selected = "no",
+                                          inline = TRUE),
             
             radioButtons("bearing_range", "Choose bearing measurements",
                          choices = c("Degrees" = "bd",
@@ -98,6 +103,7 @@ shinyUI(fluidPage(
             hidden(p(id = "processing_msk", "Constructing mask...")),
             ## break
             h3(icon("cogs"),tags$b("Modelling")),
+            uiOutput("covariate_controls"),
             ## select box for detetion functions
             selectInput("select", label = "Choose a detection function", 
                         choices = list("halfnormal" = 'hn', "hazard rate" = 'hr', "threshold" = 'th'), 

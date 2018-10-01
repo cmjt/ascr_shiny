@@ -3,7 +3,7 @@
 
 appDir <- "path/to/ascr_shiny" ## user should set "path/to/ascr_shiny" to the path to where the ascr_shiny folder is
 
-pkgs <- c("shiny","rmarkdown", "shinyjs", "shinycssloaders","shinythemes","animation","devtools","ggplot2","gridExtra","raster")
+pkgs <- c("shiny","rmarkdown", "shinyjs", "shinycssloaders","shinythemes","animation","devtools","ggplot2","gridExtra","raster","rasterVis")
 options(warn = -1)
 for (i in pkgs){
     if (!require(i, quietly = TRUE, character.only = TRUE)){

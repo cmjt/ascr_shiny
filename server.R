@@ -132,9 +132,19 @@ shinyServer(function(input, output,session) {
     output$cov.list <- renderPlot({
         req(input$covs)
         covariates <- covariates()
-        covs <- lapply(covariates,function(x) gplot(x) + geom_tile(aes(fill = value)))
+        covs <- lapply(covariates,function(x) gplot(x) +
+                                              geom_tile(aes(fill = value)) +
+                                              xlab("x-axis") + ylab("y-axis") +
+                                              theme(panel.background = element_blank(),
+                                                    panel.border = element_rect(colour = "black", fill=NA, size=1)))
         do.call(grid.arrange,covs)
         })
+    ## covariate buttons
+    output$covariate_controls <- renderUI({
+        req(input$covs)
+        covariates <- covariates()
+        checkboxGroupInput("covariates", "Choose covariates to put in your model", names(covariates))
+    })
     ## which array raw
     output$which_array_raw <- renderUI({
         detections <- detections()
@@ -218,11 +228,15 @@ shinyServer(function(input, output,session) {
         }
         if(trapType() == "single" & input$example == TRUE){
             enable("which_example")
+            enable("example_covariates")
+            shinyjs::show("example_covariates")
             shinyjs::show("which_example")
             disable("which_example_multi")
             shinyjs::hide("which_example_multi")
         }
         if(trapType() == "multi" & input$example == TRUE){
+            disable("example_covariates")
+            shinyjs::hide("example_covariates")
             disable("which_example")
             shinyjs::hide("which_example")
             enable("which_example_multi")
