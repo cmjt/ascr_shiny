@@ -126,7 +126,7 @@ shinyServer(function(input, output,session) {
         for(i in 1:length(files[,1])){
             lst[[i]] <- raster(files[[i,"datapath"]])
         }
-        names(lst) <- files[,1]
+        names(lst) <- unlist(strsplit(files[,1],".tif"))
         lst
         })
     output$cov.list <- renderPlot({
@@ -137,13 +137,15 @@ shinyServer(function(input, output,session) {
                                               xlab("x-axis") + ylab("y-axis") +
                                               theme(panel.background = element_blank(),
                                                     panel.border = element_rect(colour = "black", fill=NA, size=1)))
+        for(i in 1:length(covariates)){covs[[i]] <- covs[[i]] + ggtitle(names(covariates)[i])}
         do.call(grid.arrange,covs)
         })
     ## covariate buttons
     output$covariate_controls <- renderUI({
         req(input$covs)
         covariates <- covariates()
-        checkboxGroupInput("covariates", "Choose covariates to put in your model", names(covariates))
+        checkboxGroupInput("covariates", "Choose covariates to include in your model",
+                           names(covariates))
     })
     ## which array raw
     output$which_array_raw <- renderUI({
