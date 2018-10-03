@@ -144,9 +144,24 @@ shinyServer(function(input, output,session) {
     output$covariate_controls <- renderUI({
         req(input$covs)
         covariates <- covariates()
-        checkboxGroupInput("covariates", "Choose covariates to include in your model",
+        checkboxGroupInput("covariate.choose", "Choose covariates to include in your model",
                            names(covariates))
     })
+    cov.use <- reactive({
+        req(input$covs)
+        req(input$covariate.choose)
+        req(mask())
+        mask <- mask()
+        if(class(mask) == "list"){
+            stop("Covariate data can currently only be incuded in single array models")}
+        msk.locs <- cbind(mask[,1],mask[,2])
+        which.covariates <- input$covariate.choose
+        covariates <- covariates()
+        covariates <- covariates[which.covariates]
+        covariates.use <- lapply(covariates, function(x) extract(x,msk.locs))
+        names(covariates.use) <- names(covariates)
+        as.data.frame(covariates.use)
+        })
     ## which array raw
     output$which_array_raw <- renderUI({
         detections <- detections()
@@ -212,6 +227,8 @@ shinyServer(function(input, output,session) {
             hide("header")
             hide("sep")
             hide("quote")
+            enable("example_covariates")
+            shinyjs::show("example_covariates")
         }else{
             enable("file1")
             enable("file2")
@@ -227,6 +244,8 @@ shinyServer(function(input, output,session) {
             shinyjs::hide("which_example_multi")
             disable("which_example")
             shinyjs::hide("which_example")
+            disable("example_covariates")
+            shinyjs::hide("example_covariates")
         }
         if(trapType() == "single" & input$example == TRUE){
             enable("which_example")
@@ -588,8 +607,16 @@ shinyServer(function(input, output,session) {
         disable("fit")
         disable("side-panel")
         shinyjs::show("processing") ## stuff to disable fitting button
-        fit <-  fit.ascr(capt = capt.hist,traps = traps,mask = mask,detfn =  input$select,
-                     fix = fix, sv = sv,trace = TRUE)
+        if(!is.null(input$covariate.choose)){
+            ihd <- list(model = as.formula(paste("~",
+                                                 paste(names(cov.use()),collapse = " + ", sep = " "))),
+                        covariates = cov.use())
+            fit <-  fit.ascr(capt = capt.hist,traps = traps,mask = mask,detfn =  input$select,
+                             fix = fix, sv = sv,trace = TRUE, ihd.opts = ihd)
+        }else{
+            fit <-  fit.ascr(capt = capt.hist,traps = traps,mask = mask,detfn =  input$select,
+                             fix = fix, sv = sv,trace = TRUE)
+        }
         enable("fit")
         enable("side-panel")
         enable("downloadSurfPlot")

@@ -229,17 +229,17 @@ shinyUI(fluidPage(
                                  tabsetPanel(
                                      tabPanel(h5(icon("pencil-square"), tags$b("Model output")),
                                               fluidRow(
-                                                  column(width = 4,
+                                                  column(width = 6,
                                                          fluidRow(
                                                              h4(icon("pencil-square"),"Parameter estimates"),
                                                              withSpinner(tableOutput("coefs"),type = 5,color = "#D3D3D3")),
                                                          fluidRow(
-                                                             h4(icon("volume-control-phone"),"Density")),
-                                                         withSpinner(tableOutput("denst"),type = 5,color = "#D3D3D3")
+                                                             h4(icon("volume-control-phone"),"Density"),
+                                                         withSpinner(tableOutput("denst"),type = 5,color = "#D3D3D3")),
+                                                         fluidRow(
+                                                             h4(icon("info-circle"),"Model info"),
+                                                             withSpinner(tableOutput("AIClL"),type = 5,color = "#D3D3D3"))
                                                          ),
-                                                  column(width = 2,
-                                                         h4(icon("info-circle"),"Model info"),
-                                                         withSpinner(tableOutput("AIClL"),type = 5,color = "#D3D3D3")),
                                                   column(width = 6,
                                                          h4(icon("line-chart"),"Detection function"),
                                                          withSpinner(plotOutput("detfn"),type = 5,color = "#D3D3D3"),
