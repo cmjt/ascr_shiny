@@ -120,17 +120,21 @@ shinyServer(function(input, output,session) {
     })
     ## covariates
     covariates <- reactive({
-        req(input$covs)
-        files <- input$covs
-        lst <- list()
-        for(i in 1:length(files[,1])){
-            lst[[i]] <- raster(files[[i,"datapath"]])
+        if("yes"%in%input$example_covariates){
+            lst <-  list(covariate = raster::raster("example_raster.tif"))
+        }else{
+            req(input$covs)
+            files <- input$covs
+            lst <- list()
+            for(i in 1:length(files[,1])){
+                lst[[i]] <- raster(files[[i,"datapath"]])
+            }
+            names(lst) <- unlist(strsplit(files[,1],".tif"))
+            lst
         }
-        names(lst) <- unlist(strsplit(files[,1],".tif"))
-        lst
         })
     output$cov.list <- renderPlot({
-        req(input$covs)
+        req(covariates())
         covariates <- covariates()
         covs <- lapply(covariates,function(x) gplot(x) +
                                               geom_tile(aes(fill = value)) +
@@ -142,13 +146,13 @@ shinyServer(function(input, output,session) {
         })
     ## covariate buttons
     output$covariate_controls <- renderUI({
-        req(input$covs)
+        req(covariates())
         covariates <- covariates()
         checkboxGroupInput("covariate.choose", "Choose covariates to include in your model",
                            names(covariates))
     })
     cov.use <- reactive({
-        req(input$covs)
+        req(covariates())
         req(input$covariate.choose)
         req(mask())
         mask <- mask()
@@ -672,7 +676,7 @@ shinyServer(function(input, output,session) {
         if(class(fit)[1] == "ascr"){
             par(mfrow = c(1,2))
             show.detsurf(fit,session = input$choose_trap)
-            show.detsurf(fit,,session = input$choose_trap, surface = FALSE)    
+            show.detsurf(fit,session = input$choose_trap, surface = FALSE)    
         }else{
             plot(1,1,col="white",axes = FALSE,xlab = "",ylab = "")
             text(1,1,paste("convergence issues try advanced options"),col = "grey")
@@ -810,7 +814,26 @@ shinyServer(function(input, output,session) {
             title(paste("array", input$choose_trap))
         }
     })
-    
+    ## inhomogeneous density plot
+    output$density_surface <- renderPlot({
+        req(!is.null(input$covariate.choose))
+        validate(need(input$denst.num,"Please provide a call number"))
+        validate(need(input$denst.num <= nrow(fit()$args$capt[[1]]$bincapt),
+                      "Please provide a valid call number"))
+        show.Dsurf(fit(), session = input$denst.num)
+    })
+    ## Downloads
+    output$downloaddensity_surfPlot<- downloadHandler(
+        filename = "ascr_density_surface.png",
+        content = function(file) {
+            req(!is.null(input$covariate.choose))
+        validate(need(input$denst.num,"Please provide a call number"))
+        validate(need(input$denst.num <= nrow(fit()$args$capt[[1]]$bincapt),
+                      "Please provide a valid call number"))
+            png(file)
+            show.Dsurf(fit(), session = input$denst.num)
+            dev.off()
+        })
     output$downloadMask <- downloadHandler(
         filename = "ascrMask.png",
         content = function(file) {

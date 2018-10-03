@@ -297,7 +297,13 @@ shinyUI(fluidPage(
                                                   h4(icon("globe"),"Density surface"),
                                                    column(12, align="center",
                                                          withSpinner(plotOutput("density_surface"),type = 5,color = "#D3D3D3")
-                                                         )
+                                                         ),
+                                                  column(4,
+                                                       numericInput("denst.num",
+                                                                           "Choose call number to display in inhomogeneous density plot:",
+                                                                           min = 1, max = 1000,step = 1,
+                                                                    value = 1),
+                                                       downloadButton('downloaddensity_surfPlot', 'Density surface'))
                                               ))
                                  )
                                  )
