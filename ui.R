@@ -124,6 +124,7 @@ shinyUI(fluidPage(
             ## fix shape.2 to what value
             uiOutput("fixedshape.2"),
             actionButton("fit", "Fit model",icon("cogs")),
+            uiOutput("which_array"),
             hidden(p(id = "processing", "Processing...")),
             hr(),
             ## Other stuff
@@ -211,8 +212,8 @@ shinyUI(fluidPage(
                                         withSpinner(
                                             plotOutput(height = "800px",width = "800px","maskPlot"),
                                             type = 5,color = "#D3D3D3"),
-                                        downloadButton('downloadMask', 'Mask plot'),
-                                        uiOutput("which_array"))
+                                        downloadButton('downloadMask', 'Mask plot')
+                                        )
                                  ),
                         tabPanel(h4(icon("puzzle-piece"), tags$b("Covariates")),
                                  fluidRow(
@@ -232,9 +233,6 @@ shinyUI(fluidPage(
                                                          fluidRow(
                                                              h4(icon("pencil-square"),"Parameter estimates"),
                                                              withSpinner(tableOutput("coefs"),type = 5,color = "#D3D3D3")),
-                                                         fluidRow(
-                                                             h4(icon("volume-control-phone"),"Density"),
-                                                         withSpinner(tableOutput("denst"),type = 5,color = "#D3D3D3")),
                                                          fluidRow(
                                                              h4(icon("info-circle"),"Model info"),
                                                              withSpinner(tableOutput("AIClL"),type = 5,color = "#D3D3D3"))
@@ -294,15 +292,9 @@ shinyUI(fluidPage(
                                                   downloadButton('downloadbearingPlot', 'Bearing distribution (rad)'),
                                                   downloadButton('downloaddistancePlot', 'Distance distribution (m)'),
                                                   h4(icon("globe"),"Density surface"),
-                                                   column(12, align="center",
-                                                         withSpinner(plotOutput("density_surface"),type = 5,color = "#D3D3D3")
-                                                         ),
-                                                  column(4,
-                                                       numericInput("denst.num",
-                                                                           "Choose call number to display in inhomogeneous density plot:",
-                                                                           min = 1, max = 1000,step = 1,
-                                                                    value = 1),
-                                                       downloadButton('downloaddensity_surfPlot', 'Density surface'))
+                                                  column(12, align="center",
+                                                         withSpinner(plotOutput("density_surface"),type = 5,color = "#D3D3D3"),
+                                                         downloadButton('downloaddensity_surfPlot', 'Density surface'))
                                               ))
                                  )
                                  )

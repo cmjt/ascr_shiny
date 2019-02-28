@@ -1,4 +1,4 @@
-
+options(shiny.maxRequestSize=30*1024^2) ## increase file upload to 30MB
 shinyServer(function(input, output,session) {
     ## initiate trap type
     trapType <- "single"
@@ -157,15 +157,27 @@ shinyServer(function(input, output,session) {
         req(mask())
         mask <- mask()
         if(class(mask) == "list"){
-            stop("Covariate data can currently only be incuded in single array models")}
-        msk.locs <- cbind(mask[,1],mask[,2])
-        which.covariates <- input$covariate.choose
-        covariates <- covariates()
-        covariates <- covariates[which.covariates]
-        covariates.use <- lapply(covariates, function(x) extract(x,msk.locs))
-        names(covariates.use) <- names(covariates)
-        as.data.frame(covariates.use)
-        })
+            msk.locs <- lapply(mask, function(x) cbind(x[,1],x[,2]))
+            which.covariates <- input$covariate.choose
+            covariates <- covariates()
+            covariates <- covariates[which.covariates]
+            covariates.use <- list()
+            for(i in 1:length(msk.locs)){
+                tmp <- lapply(covariates,function(x) data.frame(extract(x,msk.locs[[i]])))
+                covariates.use[[i]] <- as.data.frame(tmp)
+                names(covariates.use[[i]]) <- names(covariates)
+            }
+            return(covariates.use)
+        }else{
+            msk.locs <- cbind(mask[,1],mask[,2])
+            which.covariates <- input$covariate.choose
+            covariates <- covariates()
+            covariates <- covariates[which.covariates]
+            covariates.use <- lapply(covariates, function(x) extract(x,msk.locs))
+            names(covariates.use) <- names(covariates)
+            return(as.data.frame(covariates.use))
+        }
+    })
     ## which array raw
     output$which_array_raw <- renderUI({
         detections <- detections()
@@ -613,7 +625,8 @@ shinyServer(function(input, output,session) {
         shinyjs::show("processing") ## stuff to disable fitting button
         if(!is.null(input$covariate.choose)){
             ihd <- list(model = as.formula(paste("~",
-                                                 paste(names(cov.use()),collapse = " + ", sep = " "))),
+                                                 paste(input$covariate.choose,
+                                                       collapse = " + ", sep = " "))),
                         covariates = cov.use())
             fit <-  fit.ascr(capt = capt.hist,traps = traps,mask = mask,detfn =  input$select,
                              fix = fix, sv = sv,trace = TRUE, ihd.opts = ihd)
@@ -647,19 +660,6 @@ shinyServer(function(input, output,session) {
             return(res)
         }
     },rownames = TRUE,digits = 3)
-    ## density
-     output$denst <- renderTable({
-        fit <- fit()
-        if(class(fit)[1]=="ascr"){
-            res <- rbind( cbind(fit$coefficients["D"],confint(fit)[1,1],confint(fit)[1,2]),
-                         cbind(fit$coefficients["D"]/0.01,confint(fit)[1,1]/0.01,confint(fit)[1,2]/0.01))
-            if(res[1,1] < 0.01){res <- matrix(apply(res,1,formatC, format = "e",digits = 2),ncol = 3,byrow = TRUE)}
-            rownames(res) <- c("per hectare",   "per squared km")
-            colnames(res) <- c("Call density", "2.5% Cl", "97.5% Cl")
-           
-            return(res)
-        }
-    },rownames = TRUE,colnames = TRUE, digits = 3)
     ## AIC and log Likelihood
     output$AIClL <- renderTable({
         fit <- fit()
@@ -759,6 +759,7 @@ shinyServer(function(input, output,session) {
                             locations(fit,input$call.num,mask = msk,xlim = ranges$x, ylim = ranges$y)
                         }else{
                             locations(fit,session = input$choose_trap,input$call.num,mask = msk,xlim = ranges$x, ylim = ranges$y)
+                            title(main = paste("array",input$choose_trap))
                         }
                         
                         legend("top",legend = paste("call",input$call.num,sep = " "),bty = "n")
@@ -767,6 +768,7 @@ shinyServer(function(input, output,session) {
                             locations(fit, input$call.num)
                         }else{
                             locations(fit,session = input$choose_trap, input$call.num)
+                            title(main = paste("array",input$choose_trap))
                         }
                         
                         legend("top",legend = paste("call",input$call.num,sep = " "),bty = "n")
@@ -817,21 +819,17 @@ shinyServer(function(input, output,session) {
     ## inhomogeneous density plot
     output$density_surface <- renderPlot({
         req(!is.null(input$covariate.choose))
-        validate(need(input$denst.num,"Please provide a call number"))
-        validate(need(input$denst.num <= nrow(fit()$args$capt[[1]]$bincapt),
-                      "Please provide a valid call number"))
-        show.Dsurf(fit(), session = input$denst.num)
+        show.Dsurf(fit(), session = input$choose_trap)
+        title(main = paste("array",input$choose_trap))
     })
     ## Downloads
     output$downloaddensity_surfPlot<- downloadHandler(
         filename = "ascr_density_surface.png",
         content = function(file) {
             req(!is.null(input$covariate.choose))
-        validate(need(input$denst.num,"Please provide a call number"))
-        validate(need(input$denst.num <= nrow(fit()$args$capt[[1]]$bincapt),
-                      "Please provide a valid call number"))
             png(file)
-            show.Dsurf(fit(), session = input$denst.num)
+            show.Dsurf(fit(), session = input$choose_trap)
+            title(main = paste("array",input$choose_trap))
             dev.off()
         })
     output$downloadMask <- downloadHandler(
