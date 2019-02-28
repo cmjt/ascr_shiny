@@ -95,7 +95,7 @@ shinyServer(function(input, output,session) {
                                     hide("bearing_range")
                                 }
                                 if("distance" %in% names(detections)){
-                                    validate(need(class(detections$distance) == "numeric", "Please make sure all distances are numeric"))
+                                    validate(need(class(detections$distance) == "numeric" | class(detections$distance) == "integer" , "Please make sure all distances are numeric"))
                                     
                                 }
                                 return(detections)
