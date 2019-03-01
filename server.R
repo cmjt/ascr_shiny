@@ -163,7 +163,12 @@ shinyServer(function(input, output,session) {
             covariates <- covariates[which.covariates]
             covariates.use <- list()
             for(i in 1:length(msk.locs)){
-                tmp <- lapply(covariates,function(x) data.frame(extract(x,msk.locs[[i]])))
+                tmp <- lapply(covariates,function(x) if(is.factor(x)){
+                                                         factorValues(x,extract(x,msk.locs[[i]]))
+                                                     }else{
+                                                         data.frame(extract(x,msk.locs[[i]]))
+                                                     }
+                              )
                 covariates.use[[i]] <- as.data.frame(tmp)
                 names(covariates.use[[i]]) <- names(covariates)
             }
@@ -173,7 +178,12 @@ shinyServer(function(input, output,session) {
             which.covariates <- input$covariate.choose
             covariates <- covariates()
             covariates <- covariates[which.covariates]
-            covariates.use <- lapply(covariates, function(x) extract(x,msk.locs))
+            covariates.use <- lapply(covariates, function(x) if(is.factor(x)){
+                                                                 factorValues(x,extract(x,msk.locs))
+                                                             }else{
+                                                                 extract(x,msk.locs)
+                                                             }
+                                     )
             names(covariates.use) <- names(covariates)
             return(as.data.frame(covariates.use))
         }
