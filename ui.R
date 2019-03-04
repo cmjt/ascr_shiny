@@ -103,6 +103,7 @@ shinyUI(fluidPage(
             ## break
             h3(icon("cogs"),tags$b("Modelling")),
             uiOutput("covariate_controls"),
+            uiOutput("cov_factor"),
             ## select box for detetion functions
             selectInput("select", label = "Choose a detection function", 
                         choices = list("halfnormal" = 'hn', "hazard rate" = 'hr', "threshold" = 'th'), 

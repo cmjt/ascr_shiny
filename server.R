@@ -128,12 +128,10 @@ shinyServer(function(input, output,session) {
             lst <- list()
             for(i in 1:length(files[,1])){
                 lst[[i]] <- raster::raster(files[[i,"datapath"]])
-                lst[[i]] <- as.factor(lst[[i]])
-                levels(lst[[i]])[[1]]$category <- as.factor(levels(lst[[i]])[[1]]$ID)
             }
             names(lst) <- unlist(strsplit(files[,1],".tif"))
-            lst
         }
+        lst
         })
     output$cov.list <- renderPlot({
         req(covariates())
@@ -145,7 +143,7 @@ shinyServer(function(input, output,session) {
                                                     panel.border = element_rect(colour = "black", fill=NA, size=1)))
         for(i in 1:length(covariates)){covs[[i]] <- covs[[i]] + ggtitle(names(covariates)[i])}
         do.call(grid.arrange,covs)
-        })
+    })
     ## covariate buttons
     output$covariate_controls <- renderUI({
         req(covariates())
@@ -153,6 +151,16 @@ shinyServer(function(input, output,session) {
         checkboxGroupInput("covariate.choose", "Choose covariates to include in your model",
                            names(covariates))
     })
+    ## covariate factor buttons
+    output$cov_factor <- renderUI({
+        req(covariates())
+        req(input$covariate.choose)
+        which.covariates <- input$covariate.choose
+        covariates <- covariates()
+        covariates <- covariates[which.covariates]
+        checkboxGroupInput("covariate.factor", "Which covariates are factor covariates (tick for yes)",
+                           names(covariates))
+        })
     cov.use <- reactive({
         req(covariates())
         req(input$covariate.choose)
@@ -163,6 +171,10 @@ shinyServer(function(input, output,session) {
             which.covariates <- input$covariate.choose
             covariates <- covariates()
             covariates <- covariates[which.covariates]
+            if(names(covariates) %in% input$covariate.factor){
+                covariates[[input$covariate.factor]] <- as.factor(covariates[[input$covariate.factor]])
+                levels(covariates[[input$covariate.factor]])[[1]]$category <- as.factor(levels(covariates[[input$covariate.factor]])[[1]]$ID)
+            }
             covariates.use <- list()
             for(i in 1:length(msk.locs)){
                 tmp <- lapply(covariates,function(x) if(is.factor(x)){
