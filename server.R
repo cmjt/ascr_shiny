@@ -127,7 +127,9 @@ shinyServer(function(input, output,session) {
             files <- input$covs
             lst <- list()
             for(i in 1:length(files[,1])){
-                lst[[i]] <- raster(files[[i,"datapath"]])
+                lst[[i]] <- raster::raster(files[[i,"datapath"]])
+                lst[[i]] <- as.factor(lst[[i]])
+                levels(lst[[i]])[[1]]$category <- as.factor(levels(lst[[i]])[[1]]$ID)
             }
             names(lst) <- unlist(strsplit(files[,1],".tif"))
             lst
