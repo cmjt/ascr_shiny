@@ -87,7 +87,7 @@ shinyServer(function(input, output,session) {
                                 validate(need(class(detections$occasion) == "integer", "Please give occasion ID as a whole number"))
                                 validate(need(class(detections$post) == "integer", "Please give post ID as a whole number"))
                                 if("bearing" %in% names(detections)){
-                                    validate(need(class(detections$bearing) == "numeric", "Please make sure all bearings are numeric"))
+                                    validate(need(class(detections$bearing) == "numeric" | class(detections$distance) == "integer", "Please make sure all bearings are numeric"))
                                     enable("bearing_range")
                                     shinyjs::show("bearing_range")
                                 }else{
