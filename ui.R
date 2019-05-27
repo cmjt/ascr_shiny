@@ -189,10 +189,10 @@ shinyUI(fluidPage(
                                               )),
                                      tabPanel(h5(icon("map-pin"), tags$b("Detections")),
                                               fluidRow(
-                                                  column(width = 4,
+                                                  column(width = 6,
                                                          h4(icon("table"),"Raw data"),
                                                          tableOutput("detections")),
-                                                  column(width = 4,
+                                                  column(width = 6,
                                                          uiOutput("which_array_capt"),
                                                          h4(icon("map-pin"),"Capture history matrix"),
                                                          tableOutput("capt.hist")))),
