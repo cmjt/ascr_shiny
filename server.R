@@ -518,8 +518,8 @@ shinyServer(function(input, output,session) {
     })
     ## choose which parameters of which detection function to fit, conditional numeric input for fixing param values
     output$fixedParamSelection <- renderUI({
-        params.fix <- cbind(c("g0","sigma","g0","sigma","z","shape","scale"),
-                            c("hn","hn","hr","hr","hr","th","th"))
+        params.fix <- cbind(c("g0","sigma","g0","sigma","z","lambda0","sigma","shape","scale"),
+                            c("hn","hn","hr","hr","hr","hhn","hhn","th","th"))
         checkboxGroupInput("parameter", "Fix which parameters:",
                            choices = as.character(params.fix[params.fix[,2] == input$select,1]),inline = TRUE)
        
@@ -539,6 +539,11 @@ shinyServer(function(input, output,session) {
                          numericInput("z","fix z to:",value = 1,min = 1,max = 100,step = 1)
                          )
     })
+    output$fixedlambda0 <- renderUI({
+        conditionalPanel(condition = "input.parameter.includes('lambda0')",       
+                         numericInput("lambda0","fix lambda0 to:",value = 1,min = 1,max = 100,step = 1)
+                         )
+    })
     output$fixedshape <- renderUI({
         conditionalPanel(condition = "input.parameter.includes('shape')",       
                          numericInput("shape","fix shape to:",value = 1,min = 1,max = 100,step = 1)
@@ -546,8 +551,8 @@ shinyServer(function(input, output,session) {
     })
 
     output$startParamSelection <- renderUI({
-        params.fix <- cbind(c("g0","sigma","g0","sigma","z","shape","scale"),
-                            c("hn","hn","hr","hr","hr","th","th"))
+        params.fix <- cbind(c("g0","sigma","g0","sigma","z","lambda0","sigma","shape","scale"),
+                            c("hn","hn","hr","hr","hr","hhn","hhn","th","th"))
         checkboxGroupInput("parset", "Set starting values for which parameters:",
                            choices = as.character(params.fix[params.fix[,2] == input$select,1]),inline = TRUE)
        
@@ -567,6 +572,11 @@ shinyServer(function(input, output,session) {
                          numericInput("svz","z start value:",value = 1,min = 1,max = 100,step = 1)
                          )              
     }) ## set starting value of z ensure it isn't already fixed
+    output$svlambda0 <- renderUI({
+        conditionalPanel(condition = "input.parset.includes('lambda0') && !input.parameter.includes('lambda0')",
+                         numericInput("svlambda0","lambda0 start value:",value = 1,min = 1,max = 100,step = 1)
+                         )              
+    }) ## set starting value of lambda0 ensure it isn't already fixed
     output$svshape <- renderUI({
         conditionalPanel(condition = "input.parset.includes('shape') && !input.parameter.includes('shape')",
                          numericInput("svshape","shape start value:",value = 1,min = 1,max = 100,step = 1)
@@ -624,13 +634,14 @@ shinyServer(function(input, output,session) {
         }
         ## fixed values
         param.fix <- input$parameter
-        param.fix.value <- list(g0 = input$g0,sigma = input$sigma,z = input$z,shape = input$shape,
+        param.fix.value <- list(g0 = input$g0,sigma = input$sigma,z = input$z,lambda0 = input$lambda0,shape = input$shape,
                                 scale = input$scale, shape.1 = input$shape.1,shape.2 = input$shape.2)
         idx <- match(param.fix,names(param.fix.value))
         fix <- param.fix.value[idx]
         ## starting values
         param.sv <- input$parset
-        param.sv.value <- list(g0 = input$svg0,sigma = input$svsigma,z = input$svz,svshape = input$svshape,
+        param.sv.value <- list(g0 = input$svg0,sigma = input$svsigma,z = input$svz,lambda0 = input$svlambda0,
+                               svshape = input$svshape,
                                scale = input$svscale, shape.1 = input$svshape.1,shape.2 = input$svshape.2)
         idsv <- match(param.sv,names(param.sv.value))
         sv <- param.sv.value[idsv]

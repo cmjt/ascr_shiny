@@ -106,7 +106,8 @@ shinyUI(fluidPage(
             uiOutput("cov_factor"),
             ## select box for detetion functions
             selectInput("select", label = "Choose a detection function", 
-                        choices = list("halfnormal" = 'hn', "hazard rate" = 'hr', "threshold" = 'th'), 
+                        choices = list("halfnormal" = 'hn', "hazard rate" = 'hr',
+                                       "hazard halfnormal" = "hhn","threshold" = 'th'), 
                         selected = "hn"),
             ## check box conditional on value of detfn chosen
             uiOutput("fixedParamSelection"),
@@ -116,6 +117,8 @@ shinyUI(fluidPage(
             uiOutput("fixedsigma"),
             ## fix z to what value
             uiOutput("fixedz"),
+            ## fix lambda0 to what value
+            uiOutput("fixedlambda0"),
             ## fix shape to what value
             uiOutput("fixedshape"),
             ## fix scale to what value
