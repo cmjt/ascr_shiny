@@ -391,14 +391,15 @@ shinyServer(function(input, output,session) {
         if(trapType() == "multi"){
             traps <- split(traps, traps$array)
             capt.hist <- get.capt.hist(detections, traps = traps)
-            dets <- split(detections, detections$array)
-            print(str(dets))
             for(i in 1:length(capt.hist)){
                 colnames(capt.hist[[i]][[1]]) <- paste(1:ncol(capt.hist[[i]][[1]]))
-            }
-            for(i in 1:length(dets)){
-                rownames(capt.hist[[i]][[1]]) <- unique(paste("occasion",dets[[i]]$occasion, "group",
-                                                              dets[[i]]$group))
+                n.row <- nrow(capt.hist[[i]][[1]])
+                if(n.row != 0 ){
+                    oc <- detections$occasion[detections$array == i]
+                    grp <- detections$group[detections$array == i]
+                    rownames(capt.hist[[i]][[1]]) <- unique(paste("occasion",oc, "group",
+                                                                  grp))
+                }
             }
         }else{
             validate(need(length(table(traps$array))==length(table(detections$array)),
@@ -630,9 +631,7 @@ shinyServer(function(input, output,session) {
         capt.hist <- capthist()
         validate(need(!is.null(capt.hist), "No capture hstory information"))
         if(trapType() == "multi"){
-            validate(need(sum(sapply(capt.hist, function(x) nrow(x$bincapt)) == 1) == 0, "Must have more than one occasion at an array"))
-            validate(need(min(sapply(capt.hist, function(x) ncol(x$bincapt))) - max(sapply(capt.hist, function(x) ncol(x$bincapt))) == 0, "Must declare all traps in capture history "))
-            validate(need(length(capt.hist)==length(mask), "Please construct mask for your loaded traps"))
+            validate(need(length(capt.hist) == length(mask), "Please construct mask for your loaded traps"))
         }
         ## fixed values
         param.fix <- input$parameter
