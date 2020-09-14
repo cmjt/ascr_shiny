@@ -211,7 +211,6 @@ shinyServer(function(input, output,session) {
         validate(need("array"%in%names(detections),""))
         validate(need("array"%in%names(traps),""))
         validate(need(trapType() == "multi",""))
-        validate(need(length(table(traps$array))==length(table(detections$array)),"Need equal number of arrays in detection file as in trap file"))
         arrs <- as.numeric(names(table(traps$array)))
         mn <- min(arrs)
         mx <- max(arrs)
@@ -229,7 +228,6 @@ shinyServer(function(input, output,session) {
         validate(need("array"%in%names(detections),""))
         validate(need("array"%in%names(traps),""))
         validate(need(trapType() == "multi",""))
-        validate(need(length(table(traps$array))==length(table(detections$array)),"Need equal number of arrays in detection file as in trap file"))
         arrs <- as.numeric(names(table(traps$array)))
         mn <- min(arrs)
         mx <- max(arrs)
@@ -246,7 +244,7 @@ shinyServer(function(input, output,session) {
         validate(need("array"%in%names(detections),""))
         validate(need("array"%in%names(traps),""))
         validate(need(trapType() == "multi",""))
-        validate(need(length(table(traps$array))==length(table(detections$array)),"Need equal number of arrays in detection file as in trap file"))
+        ## validate(need(length(table(traps$array))==length(table(detections$array)),"Need equal number of arrays in detection file as in trap file"))
         arrs <- as.numeric(names(table(traps$array)))
         mn <- min(arrs)
         mx <- max(arrs)
@@ -390,20 +388,24 @@ shinyServer(function(input, output,session) {
         traps <- traps()
         validate(need(!is.null(traps),""))
         validate(need(!is.null(detections),""))
-        n.traps <- length(table(detections$post))
         if(trapType() == "multi"){
-            validate(need(length(table(traps$array))==length(table(detections$array)),"Need equal number of arrays in detection file as in trap file"))
-            detections <- split(detections, detections$array)
-            capt.hist <- lapply(detections, get.capt.hist, n.traps = n.traps)
+            traps <- split(traps, traps$array)
+            capt.hist <- get.capt.hist(detections, traps = traps)
+            dets <- split(detections, detections$array)
+            print(str(dets))
             for(i in 1:length(capt.hist)){
-                colnames(capt.hist[[i]][[1]]) <- paste(1:n.traps)
-                rownames(capt.hist[[i]][[1]]) <- unique(paste("occasion",detections[[i]]$occasion, "group",
-                                                              detections[[i]]$group))
-                }
+                colnames(capt.hist[[i]][[1]]) <- paste(1:ncol(capt.hist[[i]][[1]]))
+            }
+            for(i in 1:length(dets)){
+                rownames(capt.hist[[i]][[1]]) <- unique(paste("occasion",dets[[i]]$occasion, "group",
+                                                              dets[[i]]$group))
+            }
         }else{
+            validate(need(length(table(traps$array))==length(table(detections$array)),
+                          "Need equal number of arrays in detection file as in trap file"))
             validate(need(trapType() == "single",""))
-            capt.hist <- get.capt.hist(detections, n.traps = n.traps)
-            colnames(capt.hist[[1]]) <- paste(1:n.traps)
+            capt.hist <- get.capt.hist(detections, traps = traps)
+            colnames(capt.hist[[1]]) <- paste(1:ncol(capt.hist[[1]]))
             rownames(capt.hist[[1]]) <- unique(paste("occasion",detections$occasion, "group", detections$group))
         }
         return(capt.hist)

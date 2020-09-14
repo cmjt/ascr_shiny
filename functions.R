@@ -6,18 +6,23 @@
 #' \code{group} and \code{occasion} that forms the individual
 #' "call id". Optional to include a column of bearings (in radians)
 #' and/or distances.
-#' @param n.traps numeric specifying how many posts/traps there are
-get.capt.hist <- function(data, n.traps){
+#' @param traps A matrix of trap locations, or a list for multi-session (array) models 
+get.capt.hist <- function(data, traps){
     occasion <- data$occasion
     post <- data$post
     group <- data$group
     cantor <- 1/2 * (occasion + group)* (occasion + group + 1) + group
-    tmp <- data.frame(array = rep(1,nrow(data)), ID = cantor,
+    if("array" %in% names(data)){
+        session <- data$array
+    }else{
+        session <- rep(1, nrow(data))
+        }
+    tmp <- data.frame(array = session, ID = cantor,
                       occasion = occasion, trap = as.numeric(data$post))
     if("bearing" %in% names(data)) {tmp$bearing <- data$bearing}
     if("distance" %in% names(data)) {tmp$dist <- data$distance}
     tmp <- tmp[order(tmp$ID),]
-    capt.hist <- create.capt(tmp,n.traps = n.traps)
+    capt.hist <- create.capt(captures = tmp,traps = as.matrix(traps))
     capt.hist
 }
 #' Function to plot mask along with trap locations in a 'tidy' presentable manner
@@ -28,8 +33,8 @@ show.mask <- function(mask = NULL,traps = NULL){
     tb <- data.frame(x = traps$x, y = traps$y)
     g <- ggplot(df,aes(x, y)) + 
         geom_point(col = "grey") + xlab("x-axis") + ylab("y-axis") +
-        theme(panel.background = element_blank(),panel.border = element_rect(colour = "black", fill=NA, size=1))
-    g +  geom_point(data = tb,aes(x = tb$x,y = tb$y), col = "red", size = 3)
+        theme(panel.background = element_blank(),panel.border = element_rect(colour = "black", fill = NA, size = 1))
+    g +  geom_point(data = tb,aes(x = x,y = y), col = "red", size = 3)
 }
 
 #' Function to plot Von Mises distribution of bearing measurement error
