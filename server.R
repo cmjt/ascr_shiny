@@ -388,6 +388,19 @@ shinyServer(function(input, output,session) {
         traps <- traps()
         validate(need(!is.null(traps),""))
         validate(need(!is.null(detections),""))
+        if("bearing" %in% names(detections)){
+            if(input$bearing_range == "rad"){
+                validate(need(min(detections$bearing) >= 0 & max(detections$bearing) <= 2*pi,
+                              "Your bearing measurements are outside the range of radians,
+please indicate correct bearing measurement in the sidebar."))
+            }else{
+                if(input$bearing_range == "bd"){
+                    validate(need(max(detections$bearing) > 2*pi,"Looks like your bearing measurements
+are already in radians, please indicate correct bearing measurement in the sidebar. "))
+                    detections$bearing <- (pi/180)*detections$bearing
+                }
+            }
+        }
         if(trapType() == "multi"){
             traps <- split(traps, traps$array)
             capt.hist <- get.capt.hist(detections, traps = traps)
@@ -609,16 +622,6 @@ shinyServer(function(input, output,session) {
     fit <- eventReactive(input$fit,{
         detections <- detections()
         traps <- traps()
-        if("bearing" %in% names(detections)){
-            validate(need(detections$bearing >= 0 & detections$bearing <= 2*pi |
-                          "bd" %in% input$bearing_range,
-                          "Your bearing measurements are outside the range of radians, please indicate correct measurement in the sidebar."))
-            
-            if("bd" %in% input$bearing_range){
-                detections$bearing <- (2*pi/360)*detections$bearing
-            }
-        }
-        
         if(trapType() == "single"){
             traps <- as.matrix(cbind(traps$x,traps$y)) 
         }else{
