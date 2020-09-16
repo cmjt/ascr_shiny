@@ -278,7 +278,7 @@ shinyUI(fluidPage(
                                                                     min = 0.1,max = 5,step = 0.1,
                                                                     value = 1),
                                                        downloadButton("report", "Animation"),
-                                                       hidden(p(id = "proc_report", "Processing report...")))
+                                                       hidden(p(id = "proc_report", "Processing animation...")))
                                                        )),
                                      tabPanel(h5(icon("line-chart"), tags$b("Other plots")),
                                               fluidRow(
