@@ -15,7 +15,7 @@ frames <- nrow(params$fit$args$capt[[session]]$bincapt)
 
 ```
 
-```{r animation, eval=TRUE,echo=FALSE,fig.show='animate',message=FALSE,width = 7, height = 7}
+```{r animation, eval = TRUE,echo = FALSE,fig.show = 'animate',message = FALSE,width = 7, height = 7,ffmpeg.format = "mp4"}
 
 
 oopt = ani.options(interval = params$anispeed,loop = 1, nmax = frames,ani.width = 600,ani.height = 600)
