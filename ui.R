@@ -1,16 +1,20 @@
-library(ascr)
-library(shiny)
-library(rmarkdown)
-library(shinyjs)
-library(shinycssloaders)
-library(shinythemes)
-library(animation)
-library(devtools)
-library(ggplot2)
-library(gridExtra)
-library(rgdal)
-library(raster)
-library(rasterVis)
+## required packages
+pkgs <- c("shiny","rmarkdown", "shinyjs", "shinycssloaders","shinythemes","animation","devtools","ggplot2","gridExtra","rgdal","raster","rasterVis")
+options(warn = -1)
+for (i in pkgs){
+    if (!require(i, quietly = TRUE, character.only = TRUE)){
+        install.packages(i)
+    }
+}
+if(!require("ascr",quietly = TRUE, character.only = TRUE) ){
+    if(!require("devtools", quietly = TRUE, character.only = TRUE)) install.packages("devtools")
+    devtools::install_github("b-steve/ascr")
+}
+if(require("ascr",quietly = TRUE, character.only = TRUE) & packageVersion("ascr") < 2.1 ){
+    if(!require("devtools", quietly = TRUE, character.only = TRUE)) install.packages("devtools")
+    devtools::install_github("b-steve/ascr")
+}
+## source functions
 source("functions.R")
 
 
