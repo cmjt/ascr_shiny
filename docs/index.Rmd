@@ -165,23 +165,23 @@ The **Model** (**Output**) tab will show the parameter estimates of the model an
 
 As illustrated by the image below a table of parameter estimates is displayed. The parameters estimated will depend on the form of detection function chosen and the parameters fixed (i.e., here g0 is not estimated as it has been fixed to 1). Estimated parameters will always include:
 
-* D---group density per hectare.
+* D: A parameter related to calling group density. Divide this estimate the number of days your survey ran at each array to obtain an estimate of daily calling group density, in groups per hectare. This is the denstiy of groups that call on a single day. Dividing by the probability that a group calls on a day (estimated from external data) yields an estimate of gibbon group density, in groups per hectare.
 
 Other parameters may include:
 
-* g0---intercept for either the halfnormal or hazard-rate detection function,
+* g0: Intercept for either the halfnormal or hazard-rate detection function,
 
-* $\sigma$---scale parameter for either the halfnormal or hazard-rate detection function,
+* $\sigma$: Scale parameter for either the halfnormal or hazard-rate detection function,
 
-* z---shape parameter of the hazard-rate detection function,
+* z: Shape parameter of the hazard-rate detection function,
 
-* shape---shape parameter of the threshold detection function,
+* shape: Shape parameter of the threshold detection function,
 
-* scale---scale parameter of the threshold detection function,
+* scale: Scale parameter of the threshold detection function,
 
-* $\kappa$---concentration parameter of the bearings measurement error distribution (von Mises),
+* $\kappa$: Concentration parameter of the bearings measurement error distribution (von Mises),
 
-* $\alpha$---shape parameter of the distance measurement error distribution (gamma).
+* $\alpha$: Shape parameter of the distance measurement error distribution (gamma).
 
 In all cases the model log-Likelihood value and the AIC score will be displayed as well as the estimated detection function and detection surface. The sidebar includes functionality to display the estimated location of a call and the distance at which to plot the distance measurement distribution (if distance data is provided). By default these values are call 1 and 1m respectively. If bearing data is provided the bearing measurement error distribution is also plotted---centered at 0. These plots will refresh once a new model is fitted (i.e., **Fit model** is activated). Each plot may be downloaded by using the appropriate buttons in the sidebar.
 
