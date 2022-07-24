@@ -165,7 +165,7 @@ The **Model** (**Output**) tab will show the parameter estimates of the model an
 
 As illustrated by the image below a table of parameter estimates is displayed. The parameters estimated will depend on the form of detection function chosen and the parameters fixed (i.e., here g0 is not estimated as it has been fixed to 1). Estimated parameters will always include:
 
-* D: A parameter related to calling group density. Divide this estimate the number of days your survey ran at each array to obtain an estimate of daily calling group density, in groups per hectare. This is the denstiy of groups that call on a single day. Dividing by the probability that a group calls on a day (estimated from external data) yields an estimate of gibbon group density, in groups per hectare.
+* D: A parameter related to calling group density. Divide this estimate the number of days your survey ran at each array to obtain an estimate of daily calling group density, in groups per hectare. This is the density of groups that call on a single day. Further dividing by the probability that a group calls on a day (estimated from external data) yields an estimate of gibbon group density, in groups per hectare.
 
 Other parameters may include:
 
